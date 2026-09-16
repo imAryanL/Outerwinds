@@ -8,7 +8,7 @@
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -88,6 +88,22 @@ export default function LocationScreen() {
     updateDraft({ point });
     setLookup({ zip: zipCode, status: 'found', place: formatPlace(point) });
   }
+
+  // Going back to screen 2 destroys this screen, so coming forward again leaves the ZIP
+  // filled in with no panel and a dead Continue. Put the lookup back from what the draft kept.
+  useEffect(() => {
+    if (draft.zip.length !== 5) {
+      return;
+    }
+
+    if (draft.point !== null) {
+      setLookup({ zip: draft.zip, status: 'found', place: formatPlace(draft.point) });
+    } else {
+      // A saved point is the only proof the lookup succeeded. Without one, 'unknown' and
+      // 'offline' still need telling apart, and only 'offline' costs a request.
+      runLookup(draft.zip);
+    }
+  }, []);
 
   // The number pad still offers characters we don't want stored, so anything that isn't a
   // digit is dropped as it's typed rather than validated later.
