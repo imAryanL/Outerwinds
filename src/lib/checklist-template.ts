@@ -173,6 +173,29 @@ export function itemApplies(
   return true;
 }
 
+// Items that start applying when the household changes — a new home type or a newly
+// ticked concern. Editing the household adds these and never takes anything away, so an
+// item the user deleted on purpose can't come back.
+export function newlyApplicable(
+  oldHomeType: string | null,
+  oldConcerns: string[],
+  newHomeType: string | null,
+  newConcerns: string[]
+): string[] {
+  const ids: string[] = [];
+
+  for (const item of TEMPLATE) {
+    const applied = itemApplies(item.templateId, oldHomeType, oldConcerns);
+    const applies = itemApplies(item.templateId, newHomeType, newConcerns);
+
+    if (!applied && applies) {
+      ids.push(item.templateId);
+    }
+  }
+
+  return ids;
+}
+
 // One checklist row, ready to be written to the database.
 export type ChecklistDraftItem = {
   templateId: string;

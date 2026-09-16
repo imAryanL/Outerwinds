@@ -4,7 +4,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { OnboardingDraft } from '@/components/onboarding/onboarding-draft';
-import { formatPlace } from '@/lib/nws';
+import { formatPlace, type PointData } from '@/lib/nws';
 import { lookupZip } from '@/lib/zip-lookup';
 
 // There is only ever one household, so the row always uses the same id. That also makes a
@@ -27,8 +27,34 @@ const INSERT_HOUSEHOLD = `
   )
 `;
 
-// Turns the onboarding answers into the flat values the table stores.
-function draftToRow(draft: OnboardingDraft) {
+// The answers a household is made of. Onboarding fills these in a draft; the Settings edit
+// screen collects the same set again, minus the supplies it already seeded.
+export type HouseholdEdit = {
+  name: string;
+  adults: number;
+  kids: number;
+  pets: number;
+  concerns: string[];
+  zip: string;
+  homeType: string | null;
+  point: PointData | null;
+};
+
+// The same columns again, minus id and created_at. An edit must not restamp the date the
+// household was first set up.
+const UPDATE_HOUSEHOLD = `
+  UPDATE household SET
+    name = $name, adults = $adults, kids = $kids, pets = $pets,
+    has_medical_needs = $has_medical_needs, medical_notes = $medical_notes,
+    home_type = $home_type, zip_code = $zip_code,
+    county = $county, nws_zone_id = $nws_zone_id, nws_office = $nws_office,
+    latitude = $latitude, longitude = $longitude, place = $place,
+    updated_at = $updated_at
+  WHERE id = $id
+`;
+
+// Turns those answers into the flat values the table stores.
+function draftToRow(draft: HouseholdEdit) {
   const now = new Date().toISOString();
 
   // These stay null when the lookup never succeeded — onboarding is allowed to finish
@@ -150,6 +176,31 @@ export async function saveHousehold(db: SQLiteDatabase, draft: OnboardingDraft) 
     $longitude: row.longitude,
     $place: row.place,
     $created_at: row.created_at,
+    $updated_at: row.updated_at,
+  });
+}
+
+// Saves an edit made from Settings. UPDATE rather than INSERT OR REPLACE so created_at
+// survives — replacing the row would stamp it with today's date on every edit.
+export async function updateHousehold(db: SQLiteDatabase, values: HouseholdEdit) {
+  const row = draftToRow(values);
+
+  await db.runAsync(UPDATE_HOUSEHOLD, {
+    $id: HOUSEHOLD_ID,
+    $name: row.name,
+    $adults: row.adults,
+    $kids: row.kids,
+    $pets: row.pets,
+    $has_medical_needs: row.has_medical_needs,
+    $medical_notes: row.medical_notes,
+    $home_type: row.home_type,
+    $zip_code: row.zip_code,
+    $county: row.county,
+    $nws_zone_id: row.nws_zone_id,
+    $nws_office: row.nws_office,
+    $latitude: row.latitude,
+    $longitude: row.longitude,
+    $place: row.place,
     $updated_at: row.updated_at,
   });
 }

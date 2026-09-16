@@ -4,7 +4,8 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { OnboardingDraft } from '@/components/onboarding/onboarding-draft';
-import { buildChecklist } from '@/lib/checklist-template';
+import type { HouseholdEdit } from '@/db/household';
+import { buildChecklist, newlyApplicable } from '@/lib/checklist-template';
 
 // is_custom is left out — template items take the column default, 0.
 const INSERT_ITEM = `
@@ -46,6 +47,94 @@ export async function saveChecklist(db: SQLiteDatabase, draft: OnboardingDraft) 
       $updated_at: now,
     });
   }
+}
+
+// Household size changed, so the three counted items need new targets. What's on hand is
+// left alone — only the number you're aiming for moves.
+export async function updateTargets(
+  db: SQLiteDatabase,
+  adults: number,
+  kids: number,
+  pets: number
+) {
+  // buildChecklist already knows which item takes which figure, so that mapping stays in
+  // one place. Home type and concerns are irrelevant here — every counted item applies to
+  // everyone, and nothing is written for the items this skips.
+  const items = buildChecklist(adults, kids, pets, [], null, []);
+  const now = new Date().toISOString();
+
+  for (const item of items) {
+    if (item.targetQty === null) {
+      continue;
+    }
+
+    await db.runAsync(
+      `UPDATE checklist_items
+          SET target_qty = $target_qty, updated_at = $updated_at
+        WHERE template_id = $template_id`,
+      {
+        $target_qty: item.targetQty,
+        $updated_at: now,
+        $template_id: item.templateId,
+      }
+    );
+  }
+}
+
+// The household changed, so some items start applying — a new home type, or a newly ticked
+// concern. Only additions happen here: an item the user removed on purpose stays gone.
+// Returns the template ids added, so their supply rows can be created next.
+export async function addNewlyApplicableItems(
+  db: SQLiteDatabase,
+  before: { homeType: string | null; concerns: string[] },
+  after: HouseholdEdit
+) {
+  const added = newlyApplicable(before.homeType, before.concerns, after.homeType, after.concerns);
+
+  if (added.length === 0) {
+    return [];
+  }
+
+  const items = buildChecklist(
+    after.adults,
+    after.kids,
+    after.pets,
+    [],
+    after.homeType,
+    after.concerns
+  );
+  const now = new Date().toISOString();
+
+  // New rows go after everything already saved, so nothing on screen reshuffles.
+  const last = await db.getFirstAsync<{ highest: number | null }>(
+    'SELECT MAX(sort_order) AS highest FROM checklist_items'
+  );
+  let sortOrder = (last?.highest ?? 0) + 1;
+
+  for (const item of items) {
+    if (!added.includes(item.templateId)) {
+      continue;
+    }
+
+    // Never started as done — the user has not said they own it.
+    await db.runAsync(INSERT_ITEM, {
+      $template_id: item.templateId,
+      $name: item.name,
+      $category: item.category,
+      $rationale: item.rationale,
+      $target_qty: item.targetQty,
+      $unit: item.unit,
+      $done: 0,
+      $done_at: null,
+      $sort_order: sortOrder,
+      $created_at: now,
+      $updated_at: now,
+    });
+
+    sortOrder = sortOrder + 1;
+  }
+
+  return added;
 }
 
 export type ChecklistProgress = {

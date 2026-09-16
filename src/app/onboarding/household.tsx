@@ -18,8 +18,9 @@ import { computeTargets, PLANNING_DAYS } from '@/lib/targets';
 // Welcome isn't a step, so this is 1 of 5.
 const CURRENT_STEP = 1;
 
-// Three only. A generator chip is cut from v1.
-const CONCERNS = [
+// Three only. A generator chip is cut from v1. Exported so the Settings edit screen asks
+// the same three rather than keeping its own copy of the labels.
+export const CONCERNS = [
   { id: 'prescriptions', label: 'Daily prescriptions', icon: 'pill' },
   { id: 'infant', label: 'Infant or formula', icon: 'baby-bottle-outline' },
   { id: 'mobility', label: 'Mobility or medical device', icon: 'wheelchair-accessibility' },

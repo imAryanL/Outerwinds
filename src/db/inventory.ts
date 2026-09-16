@@ -69,6 +69,36 @@ export async function saveInventory(db: SQLiteDatabase, draft: OnboardingDraft) 
   }
 }
 
+// Supply rows for items a household edit just added to the checklist. Same shape as the
+// onboarding seed, so every checklist row still has a detail screen to open.
+export async function addSuppliesFor(db: SQLiteDatabase, templateIds: string[]) {
+  if (templateIds.length === 0) {
+    return;
+  }
+
+  // The checklist rows are written first, so their ids already exist to link to.
+  const byTemplate = await getChecklistIdsByTemplate(db);
+  const now = new Date().toISOString();
+
+  for (const section of SUPPLY_SECTIONS) {
+    for (const item of section.items) {
+      if (!templateIds.includes(item.id)) {
+        continue;
+      }
+
+      await db.runAsync(INSERT_ITEM, {
+        $name: item.label,
+        $category: section.title,
+        // Nothing on hand — the user has not said they own it.
+        $quantity: 0,
+        $checklist_item_id: byTemplate[item.id] ?? null,
+        $created_at: now,
+        $updated_at: now,
+      });
+    }
+  }
+}
+
 // Target, unit, and done come from the linked checklist item — null when there isn't one.
 export type InventoryItemRow = {
   id: number;

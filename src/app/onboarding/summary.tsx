@@ -24,7 +24,7 @@ import { formatPlace } from '@/lib/nws';
 const CURRENT_STEP = 5;
 
 // '1 adult' or '3 adults'. Every word this is used with just takes an s.
-function countLabel(count: number, word: string) {
+export function countLabel(count: number, word: string) {
   if (count === 1) {
     return '1 ' + word;
   }
