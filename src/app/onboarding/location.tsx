@@ -10,7 +10,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Keyboard,
   Pressable,
   ScrollView,
@@ -20,6 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LookupPanel } from '@/components/lookup-panel';
 import { useOnboardingDraft } from '@/components/onboarding/onboarding-draft';
 import { OnboardingHeader, TOTAL_STEPS } from '@/components/onboarding/onboarding-header';
 import { ThemedText } from '@/components/themed-text';
@@ -151,93 +151,11 @@ export default function LocationScreen() {
     );
   }
 
-  // Only built for the ZIP currently in the field, so an answer that arrives late can never
+  // Only shown for the ZIP currently in the field, so an answer that arrives late can never
   // sit under a different number than the one it was looked up for.
   let panel = null;
-  if (lookup !== null && lookup.zip === draft.zip && lookup.status === 'loading') {
-    panel = (
-      <View
-        style={[
-          styles.panel,
-          { backgroundColor: theme.backgroundElement, borderColor: theme.border },
-        ]}>
-        <ActivityIndicator size="small" color={theme.textSecondary} />
-
-        <View style={styles.panelBody}>
-          <ThemedText themeColor="textSecondary" style={styles.panelLabel}>
-            Checking
-          </ThemedText>
-
-          <ThemedText style={styles.panelText}>Looking up your area.</ThemedText>
-        </View>
-      </View>
-    );
-  } else if (lookup !== null && lookup.zip === draft.zip && lookup.status === 'found') {
-    panel = (
-      <View
-        style={[
-          styles.panel,
-          { backgroundColor: theme.backgroundSelected, borderColor: theme.primary },
-        ]}>
-        <MaterialCommunityIcons name="map-marker-check-outline" size={18} color={theme.primaryDeep} />
-
-        <View style={styles.panelBody}>
-          <ThemedText themeColor="primaryDeep" style={styles.panelLabel}>
-            Location found!
-          </ThemedText>
-
-          <ThemedText style={styles.panelPlace}>{lookup.place}</ThemedText>
-
-          <ThemedText themeColor="textSecondary" style={styles.panelNote}>
-            We will show the National Weather Service warnings for this area. Get prepared.
-          </ThemedText>
-        </View>
-      </View>
-    );
-  } else if (lookup !== null && lookup.zip === draft.zip && lookup.status === 'unknown') {
-    panel = (
-      <View
-        style={[
-          styles.panel,
-          { backgroundColor: theme.warningBackground, borderColor: theme.warning },
-        ]}>
-        <MaterialCommunityIcons name="alert-circle-outline" size={18} color={theme.warning} />
-
-        <View style={styles.panelBody}>
-          <ThemedText themeColor="warning" style={styles.panelLabel}>
-            ZIP not recognized
-          </ThemedText>
-
-          <ThemedText style={styles.panelText}>
-            Try the one for your home address.
-          </ThemedText>
-        </View>
-      </View>
-    );
-  } else if (lookup !== null && lookup.zip === draft.zip && lookup.status === 'offline') {
-    panel = (
-      <View
-        style={[
-          styles.panel,
-          { backgroundColor: theme.offlineBanner, borderColor: theme.offlineBanner },
-        ]}>
-        <MaterialCommunityIcons name="cloud-off-outline" size={18} color="#FFFFFF" />
-
-        <View style={styles.panelBody}>
-          {/* The dark fill is the one place on this screen where the text has to be light
-              instead of taking its color from the theme. */}
-          <ThemedText style={[styles.panelLabel, styles.onDark]}>
-            Couldn&apos;t reach the service
-          </ThemedText>
-
-          {/* Onboarding is allowed to finish offline, so this says "keep going" rather
-              than asking the user to fix something they may not be able to fix. */}
-          <ThemedText style={[styles.panelText, styles.onDark]}>
-            You can keep going. Landfall will finish this the next time you&apos;re online.
-          </ThemedText>
-        </View>
-      </View>
-    );
+  if (lookup !== null && lookup.zip === draft.zip) {
+    panel = <LookupPanel status={lookup.status} place={lookup.place} />;
   }
 
   // Coordinates are the thing this screen actually has to come away with, and the bundled
@@ -391,46 +309,6 @@ const styles = StyleSheet.create({
   fieldHelp: {
     fontSize: 13,
     lineHeight: 18,
-  },
-  panel: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing.two,
-    borderRadius: 14,
-    padding: Spacing.three,
-    // Bordered in the state's own color. The fields above are 1px grey on white, so this
-    // still reads as what your answer produced rather than another thing to fill in.
-    borderWidth: 2,
-  },
-  panelBody: {
-    flex: 1,
-    gap: Spacing.one,
-  },
-  panelLabel: {
-    fontFamily: Fonts.sans,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  panelPlace: {
-    fontSize: 20,
-    lineHeight: 26,
-    fontWeight: '600',
-  },
-  panelText: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  panelNote: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  // Overrides ThemedText's theme color. Only the offline panel needs it, because it's the
-  // one panel with a dark fill instead of a tint.
-  onDark: {
-    color: '#FFFFFF',
   },
   homeBlock: {
     paddingTop: Spacing.four,
