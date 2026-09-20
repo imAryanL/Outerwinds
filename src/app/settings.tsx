@@ -5,16 +5,18 @@ import * as Notifications from "expo-notifications";
 import { router, useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useEffect, useState } from "react";
-import { AppState, Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Fonts, MaxContentWidth, Spacing } from "@/constants/theme";
-import { countLabel } from "@/app/onboarding/summary";
+import { countLabel } from "@/lib/format";
 import { getHousehold, type Household } from "@/db/household";
+import { usePrintPlan } from "@/hooks/use-print-plan";
 import { useTheme } from "@/hooks/use-theme";
 import { requestNotificationPermission } from "@/lib/notifications";
+import { isPro, setProForDevelopment } from "@/lib/pro";
 
 // The saved home_type is an id. Spelled out here rather than importing the onboarding
 // list, because only the label is needed.
@@ -35,8 +37,14 @@ export default function SettingsScreen() {
   // shows what was just saved.
   const [household, setHousehold] = useState<Household | null>(null);
 
+  // Development only — the real unlock comes from a purchase.
+  const [proOn, setProOn] = useState(false);
+
+  const { working: printing, print } = usePrintPlan();
+
   async function loadHousehold() {
     setHousehold(await getHousehold(db));
+    setProOn(await isPro(db));
   }
 
   useFocusEffect(
@@ -200,6 +208,46 @@ export default function SettingsScreen() {
 
           <View style={styles.section}>
             <ThemedText themeColor="textSecondary" style={styles.sectionLabel}>
+              Your plan
+            </ThemedText>
+
+            <Pressable
+              onPress={print}
+              disabled={printing}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.card,
+                { backgroundColor: theme.backgroundElement },
+                pressed && styles.pressed,
+              ]}>
+              <View style={styles.row}>
+                <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
+                  <MaterialCommunityIcons
+                    name="printer-outline"
+                    size={20}
+                    color={theme.primaryDeep}
+                  />
+                </View>
+                <View style={styles.rowText}>
+                  <ThemedText style={styles.rowTitle}>
+                    {printing ? "Making your plan…" : "Print my plan"}
+                  </ThemedText>
+                  <ThemedText themeColor="textSecondary" style={styles.rowDetail}>
+                    A PDF of your checklist, what you still need, and what is due for
+                    replacing.
+                  </ThemedText>
+                </View>
+                <MaterialCommunityIcons
+                  name="chevron-right"
+                  size={22}
+                  color={theme.textSecondary}
+                />
+              </View>
+            </Pressable>
+          </View>
+
+          <View style={styles.section}>
+            <ThemedText themeColor="textSecondary" style={styles.sectionLabel}>
               Notifications
             </ThemedText>
 
@@ -253,6 +301,41 @@ export default function SettingsScreen() {
               </View>
             </View>
           </View>
+
+          {/* __DEV__ is false in any release build, so this section cannot ship. */}
+          {__DEV__ ? (
+            <View style={styles.section}>
+              <ThemedText themeColor="textSecondary" style={styles.sectionLabel}>
+                Developer
+              </ThemedText>
+
+              <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
+                <View style={styles.row}>
+                  <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
+                    <MaterialCommunityIcons
+                      name="flask-outline"
+                      size={20}
+                      color={theme.primaryDeep}
+                    />
+                  </View>
+                  <View style={styles.rowText}>
+                    <ThemedText style={styles.rowTitle}>Pro unlocked</ThemedText>
+                    <ThemedText themeColor="textSecondary" style={styles.rowDetail}>
+                      Testing switch. Not a purchase.
+                    </ThemedText>
+                  </View>
+                  <Switch
+                    value={proOn}
+                    onValueChange={async (next) => {
+                      // Set the state first so the switch doesn't lag behind the finger.
+                      setProOn(next);
+                      await setProForDevelopment(db, next);
+                    }}
+                  />
+                </View>
+              </View>
+            </View>
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     </ThemedView>

@@ -9,6 +9,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HOME_TYPES } from '@/app/onboarding/location';
+import { countLabel } from '@/lib/format';
 import { useOnboardingDraft } from '@/components/onboarding/onboarding-draft';
 import { OnboardingHeader, TOTAL_STEPS } from '@/components/onboarding/onboarding-header';
 import { ThemedText } from '@/components/themed-text';
@@ -24,14 +25,6 @@ import { formatPlace } from '@/lib/nws';
 const CURRENT_STEP = 5;
 
 // '1 adult' or '3 adults'. Every word this is used with just takes an s.
-export function countLabel(count: number, word: string) {
-  if (count === 1) {
-    return '1 ' + word;
-  }
-
-  return count + ' ' + word + 's';
-}
-
 export default function SummaryScreen() {
   const theme = useTheme();
   const { draft } = useOnboardingDraft();

@@ -1,6 +1,7 @@
 // The prep checklist every household starts with. Plain data and math, no database or React.
 // Ids match the onboarding supplies screen, so "I already own this" lands on the right row.
 
+import type { ChecklistItemRow } from '@/db/checklist';
 import { computeTargets } from '@/lib/targets';
 
 // Which computeTargets figure fills the target. Null for have-it-or-don't items.
@@ -250,4 +251,30 @@ export function buildChecklist(
   }
 
   return items;
+}
+
+// Groups the flat list into categories, keeping the template's order. Shared by the
+// checklist screen and the printable plan so the two can't drift apart.
+export function groupByCategory(items: ChecklistItemRow[]) {
+  const groups: { name: string; items: ChecklistItemRow[] }[] = [];
+
+  for (const item of items) {
+    const name = item.category ?? 'Other';
+
+    let group = null;
+    for (const existing of groups) {
+      if (existing.name === name) {
+        group = existing;
+      }
+    }
+
+    if (group === null) {
+      group = { name: name, items: [] as ChecklistItemRow[] };
+      groups.push(group);
+    }
+
+    group.items.push(item);
+  }
+
+  return groups;
 }

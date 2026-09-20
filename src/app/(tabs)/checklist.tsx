@@ -16,7 +16,9 @@ import {
   setChecklistItemDone,
   type ChecklistItemRow,
 } from "@/db/checklist";
+import { usePrintPlan } from "@/hooks/use-print-plan";
 import { useTheme } from "@/hooks/use-theme";
+import { groupByCategory } from "@/lib/checklist-template";
 
 // Exported — the supply detail screen reuses it for a binary item's done toggle.
 export function Checkbox({ checked }: { checked: boolean }) {
@@ -170,31 +172,6 @@ function CategoryHeader({ name, items }: { name: string; items: ChecklistItemRow
   );
 }
 
-// Groups the flat list into categories, keeping the template's order.
-function groupByCategory(items: ChecklistItemRow[]) {
-  const groups: { name: string; items: ChecklistItemRow[] }[] = [];
-
-  for (const item of items) {
-    const name = item.category ?? "Other";
-
-    let group = null;
-    for (const existing of groups) {
-      if (existing.name === name) {
-        group = existing;
-      }
-    }
-
-    if (group === null) {
-      group = { name: name, items: [] as ChecklistItemRow[] };
-      groups.push(group);
-    }
-
-    group.items.push(item);
-  }
-
-  return groups;
-}
-
 export default function ChecklistScreen() {
   const theme = useTheme();
   const db = useSQLiteContext();
@@ -218,6 +195,8 @@ export default function ChecklistScreen() {
     await setChecklistItemDone(db, item.id, item.done !== 1);
     setChecklist(await getChecklist(db));
   }
+
+  const { working: printing, print } = usePrintPlan();
 
   function confirmDelete(item: ChecklistItemRow) {
     Alert.alert(`Delete "${item.name}"?`, "This can't be undone.", [
@@ -297,6 +276,28 @@ export default function ChecklistScreen() {
             <MaterialCommunityIcons name="plus" size={20} color={theme.textSecondary} />
             <ThemedText type="small" themeColor="textSecondary">
               Add item
+            </ThemedText>
+          </Pressable>
+
+          {/* Sits under the list because that's the moment you want it — looking at
+              what's left and about to go shopping. Same row for everyone: Pro builds
+              the PDF, free sees the unlock prompt — this is the best place in the app
+              to learn Pro exists. */}
+          <Pressable
+            onPress={print}
+            disabled={printing}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              styles.addRow,
+              styles.printRow,
+              styles.printRowFilled,
+              { backgroundColor: theme.primaryDeep },
+              pressed && styles.rowPressed,
+            ]}
+          >
+            <MaterialCommunityIcons name="printer-outline" size={20} color="#FFFFFF" />
+            <ThemedText type="small" style={styles.printRowText}>
+              {printing ? "Making your plan…" : "Print my plan"}
             </ThemedText>
           </Pressable>
         </ScrollView>
@@ -394,5 +395,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 16,
     paddingVertical: 14,
+  },
+  // A gap before this one row, so it doesn't read as glued to Add item.
+  printRow: {
+    marginTop: 12,
+  },
+  printRowText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+  },
+  // addRow's border is meant for an outlined button — a filled one needs none.
+  printRowFilled: {
+    borderWidth: 0,
   },
 });
