@@ -49,7 +49,7 @@ export function CalmState({ seasonTodayPercent, place }: CalmStateProps) {
         themeColor="textSecondary"
         style={styles.calmFootnote}
       >
-        Landfall saves the newest update, so it&apos;s still here if you lose
+        Outerwinds saves the newest update, so it&apos;s still here if you lose
         signal.
       </ThemedText>
 

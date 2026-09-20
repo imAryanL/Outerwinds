@@ -150,7 +150,7 @@ export default function SummaryScreen() {
             <ThemedText style={styles.title}>{title}</ThemedText>
 
             <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-              Here&apos;s what Landfall knows.
+              Here&apos;s what Outerwinds knows.
             </ThemedText>
           </View>
 

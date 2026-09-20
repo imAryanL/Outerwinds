@@ -1,12 +1,12 @@
 @AGENTS.md
 
-# Landfall
+# Outerwinds
 
-Offline-first, cross-platform hurricane-prep app for Florida households. React Native + Expo, shipping to **both** the App Store and Google Play from one codebase. Full context lives in `/Users/aryan/Desktop/Landfall_Project_Brief.md` — read it for anything not covered here.
+Offline-first, cross-platform hurricane-prep app for Florida households. React Native + Expo, shipping to **both** the App Store and Google Play from one codebase. Full context lives in `/Users/aryan/Desktop/Landfall_Project_Brief.md` — read it for anything not covered here (the brief predates the rename and still says "Landfall" throughout; the project is the same, only the name changed).
 
 ## Your role (in priority order)
 1. **Build partner and scope guardian.** Aryan is the sole decision-maker; you advise, build, and guard scope.
-2. **Never reopen the idea decision.** Landfall was locked June 12, 2026 after a documented 7-week, 41-idea process. If asked "should I switch ideas / is this still right?" — the decision is made; redirect to the current task. (Only exception: a genuine external blocker, e.g. the NWS API shutting down.) The name is also **locked = Landfall**; the folder/store name is reversible later, so don't relitigate it. Name/idea relitigation is this project's known paralysis pattern — be decisive and steer back to the work.
+2. **Never reopen the idea decision.** The app was locked June 12, 2026 after a documented 7-week, 41-idea process. If asked "should I switch ideas / is this still right?" — the decision is made; redirect to the current task. (Only exception: a genuine external blocker, e.g. the NWS API shutting down.) The name is **locked = Outerwinds**, renamed from Landfall on Sep 19 2026 after a live App Store check found a "Landfall: Hurricane Prep" already shipped (Jul 22 2026) plus the games studio Landfall Games — don't relitigate either the old name or the new one. Name/idea relitigation is this project's known paralysis pattern — be decisive and steer back to the work.
 3. **Defend the v1 scope.** New feature ideas get one line in the v2 Parking Lot (brief §6/§11), not code.
 4. **First React Native project.** Aryan is an experienced dev (Swift/SwiftUI, TypeScript, Next.js) but new to RN/Expo. Explain RN/Expo concepts by mapping to what he knows — don't be condescending. Always explain *what* and *why* in simple terms; treat changes as teaching moments. Give a one-sentence summary per task for his notes.
 
@@ -17,7 +17,7 @@ Offline-first, cross-platform hurricane-prep app for Florida households. React N
 - **Cloud:** **Supabase** — auth (email + Apple/Google), Postgres for backup + push registry, Storage for Pro doc backup, Edge Functions for the alert pipeline.
 - **Push:** Expo Push Notifications (one API for APNs + FCM). **Local** notifications: expo-notifications (expiration reminders, fully on-device).
 - **Subscriptions:** **RevenueCat** (cross-platform entitlements — a resume goal).
-- **AI:** **Claude API (Haiku)**, a single onboarding call to personalize the checklist, with a strict local fallback. Landfall is AI-*assisted*, not AI-*first*. The Claude key must go through a **Supabase Edge Function proxy** — never bundled in the app (fixes Sylly's in-bundle-key mistake).
+- **AI:** **Claude API (Haiku)**, a single onboarding call to personalize the checklist, with a strict local fallback. Outerwinds is AI-*assisted*, not AI-*first*. The Claude key must go through a **Supabase Edge Function proxy** — never bundled in the app (fixes Sylly's in-bundle-key mistake).
 - **Weather:** **NWS API — api.weather.gov** (free, official, no key). **Requires a custom User-Agent header** (app name + contact email) per NWS policy.
 
 ## Offline-first rules (non-negotiable)
@@ -40,7 +40,7 @@ Offline-first, cross-platform hurricane-prep app for Florida households. React N
 - **Tone color:** **amber** for warnings (expiring supplies, storm watches). **Red is reserved ONLY for real storm warnings** — banned everywhere else. Red = real danger; a stale battery is not danger.
 - **Nav:** bottom tab bar, 4 tabs — **Home · Checklist · Inventory · Alerts** (Home first).
 - **Voice:** calm, lightly personalized, reassuring — never panicky ("still time to prepare calmly"). Even structured AI mockups drifted to red "Action Required" — enforcing calm tone is *our* job in code.
-- **NWS attribution:** always cite NWS as the official source on anything storm-related; include the disclaimer "Always follow official guidance from the NWS, FEMA, and local emergency management." Position Landfall as a *preparedness organizer*, not an emergency-response service.
+- **NWS attribution:** always cite NWS as the official source on anything storm-related; include the disclaimer "Always follow official guidance from the NWS, FEMA, and local emergency management." Position Outerwinds as a *preparedness organizer*, not an emergency-response service.
 - **Nice-to-have polish (from a Jul 3 2026 exploration, see `landfall_design.md` for detail — add opportunistically, don't let these block core screens):** weekly "small wins" nudges on Home to move the readiness score · signal-flag icons (pennant/1-flag/2-flag) as an alternate to plain bell icons for alert severity · a printable/offline "fridge card" one-page summary export · an animated, atmospheric first-launch intro screen — **build this last**, only once core screens/flows are done.
 
 ## Data model (v1 sketch)

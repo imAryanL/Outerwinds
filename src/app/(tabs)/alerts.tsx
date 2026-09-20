@@ -126,7 +126,7 @@ export default function AlertsScreen() {
               </View>
               <ThemedText style={styles.noAnswerTitle}>Couldn&apos;t check for alerts</ThemedText>
               <ThemedText themeColor="textSecondary" style={styles.noAnswerBody}>
-                Landfall couldn&apos;t reach the National Weather Service, and there&apos;s no
+                Outerwinds couldn&apos;t reach the National Weather Service, and there&apos;s no
                 saved update yet. Open this tab again once you have signal.
               </ThemedText>
             </View>
@@ -151,7 +151,7 @@ export default function AlertsScreen() {
 
           {/* Outside both states — it shows with or without an alert. */}
           <ThemedText themeColor="textSecondary" style={styles.disclaimer}>
-            Landfall helps you prepare. Always follow official emergency guidance.
+            Outerwinds helps you prepare. Always follow official emergency guidance.
           </ThemedText>
         </ScrollView>
       </SafeAreaView>

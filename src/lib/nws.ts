@@ -2,7 +2,7 @@
 // coordinates (onboarding), and fetch the watches and warnings running in a zone (Alerts).
 
 // NWS requires a User-Agent naming the app and a way to reach whoever runs it.
-const USER_AGENT = "(Landfall, github.com/imAryanL/Landfall)";
+const USER_AGENT = "(Outerwinds, github.com/imAryanL/Outerwinds)";
 
 // fetch has no timeout of its own. Without this, a connection that is accepted but never
 // answered would leave the screen loading forever instead of falling back to offline.

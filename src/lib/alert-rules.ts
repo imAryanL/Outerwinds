@@ -5,7 +5,7 @@ import type { AlertData } from "@/lib/nws";
 
 export type AlertLevel = "calm" | "watch" | "warning";
 
-// The events Landfall reacts to. NWS publishes plenty more — rip currents, dense fog,
+// The events Outerwinds reacts to. NWS publishes plenty more — rip currents, dense fog,
 // air quality — all real, none of them what this app is for. Turning the screen red for
 // a fog advisory would spend the one color reserved for a storm.
 const STORM_EVENTS = ["Hurricane", "Tropical Storm", "Storm Surge", "Flash Flood"];

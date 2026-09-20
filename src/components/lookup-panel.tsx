@@ -113,7 +113,7 @@ export function LookupPanel({ status, place }: LookupPanelProps) {
         {/* Says "keep going" rather than asking the user to fix something they may not be
             able to fix — both screens are allowed to finish offline. */}
         <ThemedText style={[styles.panelText, styles.onDark]}>
-          You can keep going. Landfall will finish this the next time you&apos;re online.
+          You can keep going. Outerwinds will finish this the next time you&apos;re online.
         </ThemedText>
       </View>
     </View>

@@ -1,6 +1,6 @@
 // Onboarding screen 1 of 6 — the welcome.
 //
-// This screen deliberately asks for nothing. It states what Landfall is, sets the tone
+// This screen deliberately asks for nothing. It states what Outerwinds is, sets the tone
 // for the whole app, and tells the user up front how long this will take and that no
 // account is involved — the two things that make people abandon an onboarding flow.
 
@@ -41,7 +41,7 @@ export default function WelcomeScreen() {
           </ThemedText>
 
           <ThemedText themeColor="textSecondary" style={styles.body}>
-            Landfall helps your household get ready over weeks, at a calm pace. Your
+            Outerwinds helps your household get ready over weeks, at a calm pace. Your
             checklist, supplies and documents live on this phone, and keep working when
             the power and the signal don&apos;t.
           </ThemedText>

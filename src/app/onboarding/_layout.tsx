@@ -1,5 +1,5 @@
 // Layout for the onboarding flow — the screens someone sees the very first time they
-// open Landfall, before the tabs ever appear.
+// open Outerwinds, before the tabs ever appear.
 //
 // This is its own stack, sitting beside the tabs rather than inside them, so these
 // screens take over the whole display with no tab bar. Screens push onto a stack and

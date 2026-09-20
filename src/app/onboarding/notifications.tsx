@@ -169,7 +169,7 @@ export default function NotificationsScreen() {
           <View style={styles.choices}>{choiceRows}</View>
 
           <ThemedText themeColor="textSecondary" style={styles.attribution}>
-            Alerts come from the National Weather Service — the official source. Landfall
+            Alerts come from the National Weather Service — the official source. Outerwinds
             never invents a forecast of its own.
           </ThemedText>
         </ScrollView>

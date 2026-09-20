@@ -20,7 +20,7 @@ export function OfflineBanner({ cachedAt }: OfflineBannerProps) {
     <View style={[styles.banner, { backgroundColor: theme.offlineBanner }]}>
       <MaterialCommunityIcons name="wifi-off" size={21} color="#FFFFFF" />
       <ThemedText style={styles.bannerText}>
-        You&apos;re offline — Landfall still works. Showing your last saved NWS update from {cachedAt}.
+        You&apos;re offline — Outerwinds still works. Showing your last saved NWS update from {cachedAt}.
       </ThemedText>
     </View>
   );

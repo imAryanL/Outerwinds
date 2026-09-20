@@ -233,7 +233,7 @@ export default function SettingsScreen() {
                 <View style={styles.rowText}>
                   <ThemedText style={styles.rowTitle}>Alerts from the National Weather Service</ThemedText>
                   <ThemedText themeColor="textSecondary" style={styles.rowDetail}>
-                    The official source. Landfall never invents a forecast.
+                    The official source. Outerwinds never invents a forecast.
                   </ThemedText>
                 </View>
               </View>

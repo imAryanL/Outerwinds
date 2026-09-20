@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "landfall",
-    "slug": "landfall",
+    "name": "Outerwinds",
+    "slug": "outerwinds",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "landfall",
+    "scheme": "outerwinds",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.aryan.landfall"
+      "bundleIdentifier": "com.aryan.outerwinds"
     },
     "android": {
-      "package": "com.aryan.landfall",
+      "package": "com.aryan.outerwinds",
       "adaptiveIcon": {
         "backgroundColor": "#047857",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -39,8 +39,8 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Landfall uses your camera to photograph documents for your vault.",
-          "photosPermission": "Landfall lets you add a photo from your library to your document vault.",
+          "cameraPermission": "Outerwinds uses your camera to photograph documents for your vault.",
+          "photosPermission": "Outerwinds lets you add a photo from your library to your document vault.",
           "microphonePermission": false
         }
       ],
@@ -56,8 +56,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "170b2ca2-32a4-410e-8aa1-1c03e4387834"
+        "projectId": "92b52df8-d569-4ec2-9af7-1ca13e5b5dd7"
       }
-    }
+    },
+    "owner": "aryan914"
   }
 }

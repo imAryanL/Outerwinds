@@ -1,5 +1,5 @@
 /**
- * Landfall colors. Named by meaning so we change them in one place.
+ * Outerwinds colors. Named by meaning so we change them in one place.
  * v1 is light-only; `dark` is kept so the scaffold doesn't break.
  */
 
