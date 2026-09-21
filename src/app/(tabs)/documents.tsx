@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
@@ -14,6 +14,7 @@ import { Fonts } from "@/constants/theme";
 import { getDocuments, type DocumentRow } from "@/db/documents";
 import { useTheme } from "@/hooks/use-theme";
 import { DOCUMENT_CATEGORIES, iconForCategory } from "@/lib/document-categories";
+import { FREE_DOCUMENT_LIMIT, isPro } from "@/lib/pro";
 
 // 'Added Sep 3' — same short format everywhere a document shows its date.
 function addedLabel(createdAt: string) {
@@ -55,6 +56,22 @@ export default function DocumentsScreen() {
   const db = useSQLiteContext();
 
   const [documents, setDocuments] = useState<DocumentRow[] | null>(null);
+
+  // Free caps at FREE_DOCUMENT_LIMIT documents, not photos — a 6-page policy is one.
+  // Checked here, before the picker flow starts, so a free user never fills out a
+  // whole add flow only to be blocked on save.
+  async function handleAddDocument() {
+    const count = documents?.length ?? 0;
+    if (count >= FREE_DOCUMENT_LIMIT && !(await isPro(db))) {
+      Alert.alert(
+        "A Pro feature",
+        `Unlock Pro to save more than ${FREE_DOCUMENT_LIMIT} documents.`,
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    router.push("/add-document");
+  }
 
   // useFocusEffect (not useEffect) re-runs every time this tab is navigated back to, not
   // just on first mount — needed so a document added or deleted elsewhere shows up here
@@ -121,8 +138,9 @@ export default function DocumentsScreen() {
           {sections}
 
           <Pressable
-            onPress={() => router.push("/add-document")}
+            onPress={handleAddDocument}
             accessibilityRole="button"
+            testID="add-document-button"
             style={({ pressed }) => [
               styles.addRow,
               { backgroundColor: theme.primaryDeep },

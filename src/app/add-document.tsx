@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { NotesEditorModal } from "@/components/notes-editor-modal";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Fonts, MaxContentWidth, Spacing } from "@/constants/theme";
@@ -43,6 +44,8 @@ export default function AddDocumentScreen() {
   const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [page, setPage] = useState(0);
   const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
+  const [editingNotes, setEditingNotes] = useState(false);
   const [permissionNotice, setPermissionNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const photoScrollRef = useRef<ScrollView>(null);
@@ -108,6 +111,7 @@ export default function AddDocumentScreen() {
     setPhotoUris(uris);
     setPage(0);
     setTitle(category); // starts as the category name, renamed in one tap
+    setNotes("");
     setPermissionNotice(null);
     setStep("confirm");
   }
@@ -138,7 +142,7 @@ export default function AddDocumentScreen() {
     }
 
     setSaving(true);
-    await saveDocument(db, title.trim(), category, photoUris);
+    await saveDocument(db, title.trim(), category, photoUris, notes.trim());
     leave();
   }
 
@@ -314,6 +318,26 @@ export default function AddDocumentScreen() {
                 />
               </View>
 
+              <View style={styles.field}>
+                <ThemedText type="small" themeColor="textTertiary" style={styles.fieldLabel}>
+                  NOTES
+                </ThemedText>
+                <Pressable
+                  onPress={() => setEditingNotes(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Edit notes"
+                  style={({ pressed }) => [
+                    styles.notesRow,
+                    { borderColor: theme.border, backgroundColor: theme.backgroundElement },
+                    pressed && styles.pressed,
+                  ]}>
+                  <ThemedText type="default" themeColor={notes.length > 0 ? "text" : "textSecondary"} style={styles.notesRowText}>
+                    {notes.length > 0 ? notes : "Add a note here like important information, a phone number, anything worth having handy."}
+                  </ThemedText>
+                  <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textSecondary} />
+                </Pressable>
+              </View>
+
               <View style={styles.categoryDisplay}>
                 <MaterialCommunityIcons
                   name={DOCUMENT_CATEGORIES.find((entry) => entry.label === category)?.icon ?? "file-document-outline"}
@@ -343,6 +367,15 @@ export default function AddDocumentScreen() {
           </View>
         )}
       </SafeAreaView>
+
+      <NotesEditorModal
+        visible={editingNotes}
+        initialValue={notes}
+        onSave={(value) => {
+          setNotes(value.trim());
+          setEditingNotes(false);
+        }}
+      />
     </ThemedView>
   );
 }
@@ -464,6 +497,18 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
     fontSize: 17,
     fontFamily: Fonts.serif,
+  },
+  notesRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.three,
+  },
+  notesRowText: {
+    flex: 1,
   },
   categoryDisplay: {
     flexDirection: "row",

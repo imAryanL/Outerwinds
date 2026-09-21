@@ -35,7 +35,8 @@ export async function saveDocument(
   db: SQLiteDatabase,
   title: string,
   category: string,
-  sourceUris: string[]
+  sourceUris: string[],
+  notes: string
 ) {
   const permanentUris = [];
   for (let i = 0; i < sourceUris.length; i++) {
@@ -45,12 +46,13 @@ export async function saveDocument(
   const now = new Date().toISOString();
 
   await db.runAsync(
-    `INSERT INTO documents (title, category, photo_uris, created_at, updated_at)
-     VALUES ($title, $category, $photo_uris, $created_at, $updated_at)`,
+    `INSERT INTO documents (title, category, photo_uris, notes, created_at, updated_at)
+     VALUES ($title, $category, $photo_uris, $notes, $created_at, $updated_at)`,
     {
       $title: title,
       $category: category,
       $photo_uris: JSON.stringify(permanentUris),
+      $notes: notes,
       $created_at: now,
       $updated_at: now,
     }

@@ -10,7 +10,6 @@ import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
-  Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -22,11 +21,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { NotesEditorModal } from "@/components/notes-editor-modal";
 import { PhotoViewer } from "@/components/photo-viewer";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Fonts, MaxContentWidth, Spacing } from "@/constants/theme";
 import { deleteDocument, getDocument, updateDocumentNotes, updateDocumentTitle, type DocumentRow } from "@/db/documents";
+import { useExportDocumentPdf } from "@/hooks/use-export-document-pdf";
 import { useTheme } from "@/hooks/use-theme";
 
 // 'September 3' — spelled out here, unlike the list row's shorter 'Sep 3'.
@@ -52,8 +53,8 @@ export default function DocumentDetailScreen() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
   const [editingNotes, setEditingNotes] = useState(false);
-  const [notesDraft, setNotesDraft] = useState("");
   const heroScrollRef = useRef<ScrollView>(null);
+  const { working: exporting, exportPdf } = useExportDocumentPdf(documentId);
 
   useEffect(() => {
     async function load() {
@@ -121,14 +122,13 @@ export default function DocumentDetailScreen() {
     if (doc === null) {
       return;
     }
-    setNotesDraft(doc.notes);
     setEditingNotes(true);
   }
 
   // Unlike the title, an empty note is a valid save — it's how you clear one out.
-  async function saveNotes() {
+  async function saveNotes(value: string) {
     if (doc !== null) {
-      const trimmed = notesDraft.trim();
+      const trimmed = value.trim();
       if (trimmed !== doc.notes) {
         await updateDocumentNotes(db, documentId, trimmed);
         setDoc({ ...doc, notes: trimmed });
@@ -260,14 +260,41 @@ export default function DocumentDetailScreen() {
                     NOTES
                   </ThemedText>
 
-                  <Pressable onPress={startEditingNotes} accessibilityRole="button" accessibilityLabel="Edit notes">
-                    <ThemedText type="default" themeColor={doc.notes.length > 0 ? "text" : "textSecondary"}>
+                  <Pressable
+                    onPress={startEditingNotes}
+                    accessibilityRole="button"
+                    accessibilityLabel="Edit notes"
+                    style={({ pressed }) => [
+                      styles.notesRow,
+                      { borderColor: theme.border, backgroundColor: theme.backgroundElement },
+                      pressed && styles.pressed,
+                    ]}>
+                    <ThemedText type="default" themeColor={doc.notes.length > 0 ? "text" : "textSecondary"} style={styles.notesRowText}>
                       {doc.notes.length > 0
                         ? doc.notes
-                        : "Add a note — a policy number, a phone number, anything worth having handy."}
+                        : "Add a note here like important information, a phone number, anything worth having handy."}
                     </ThemedText>
+                    <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textSecondary} />
                   </Pressable>
                 </View>
+
+                {/* Distinct from the Share button up top, which only sends whichever single
+                    photo is on screen — this combines every photo into one file, the thing
+                    worth sending an adjuster. Same filled-row treatment as "Print my plan". */}
+                <Pressable
+                  onPress={exportPdf}
+                  disabled={exporting}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.exportRow,
+                    { backgroundColor: theme.primaryDeep },
+                    pressed && styles.pressed,
+                  ]}>
+                  <MaterialCommunityIcons name="file-pdf-box" size={20} color="#FFFFFF" />
+                  <ThemedText type="small" style={styles.exportRowText}>
+                    {exporting ? "Making your PDF…" : "Export as PDF"}
+                  </ThemedText>
+                </Pressable>
 
                 <View>
                   <View style={[styles.divider, { backgroundColor: theme.border }]} />
@@ -290,26 +317,7 @@ export default function DocumentDetailScreen() {
         )}
       </SafeAreaView>
 
-      <Modal visible={editingNotes} animationType="slide" presentationStyle="pageSheet" onRequestClose={saveNotes}>
-        <ThemedView style={{ flex: 1 }}>
-          <SafeAreaView style={{ flex: 1 }}>
-            <View style={styles.notesModalHeader}>
-              <ThemedText style={styles.notesModalTitle}>Notes</ThemedText>
-              <Pressable onPress={saveNotes} accessibilityRole="button" accessibilityLabel="Done">
-                <ThemedText style={[styles.notesModalDone, { color: theme.primaryDeep }]}>Done</ThemedText>
-              </Pressable>
-            </View>
-
-            <TextInput
-              value={notesDraft}
-              onChangeText={setNotesDraft}
-              autoFocus
-              multiline
-              style={[styles.notesModalInput, { color: theme.text }]}
-            />
-          </SafeAreaView>
-        </ThemedView>
-      </Modal>
+      <NotesEditorModal visible={editingNotes} initialValue={doc?.notes ?? ""} onSave={saveNotes} />
     </ThemedView>
   );
 }
@@ -351,29 +359,17 @@ const styles = StyleSheet.create({
   notesLabel: {
     letterSpacing: 0.5,
   },
-  notesModalHeader: {
+  notesRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: Spacing.four,
+    gap: Spacing.two,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.three,
   },
-  notesModalTitle: {
-    fontFamily: Fonts.serif,
-    fontSize: 20,
-    fontWeight: "500",
-  },
-  notesModalDone: {
-    fontSize: 17,
-    fontWeight: "700",
-  },
-  notesModalInput: {
+  notesRowText: {
     flex: 1,
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: "500",
-    paddingHorizontal: Spacing.four,
-    textAlignVertical: "top",
   },
   titleEditRow: {
     flexDirection: "row",
@@ -398,6 +394,18 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginVertical: Spacing.two,
+  },
+  exportRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.two,
+    borderRadius: 14,
+    paddingVertical: Spacing.three,
+  },
+  exportRowText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
   deleteRow: {
     flexDirection: "row",

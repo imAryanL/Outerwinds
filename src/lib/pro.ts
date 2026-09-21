@@ -28,4 +28,4 @@ export async function setProForDevelopment(db: SQLiteDatabase, unlocked: boolean
 
 // How many documents the free tier holds. Exported so the vault and the paywall copy
 // can't disagree about the number.
-export const FREE_DOCUMENT_LIMIT = 10;
+export const FREE_DOCUMENT_LIMIT = 3;
