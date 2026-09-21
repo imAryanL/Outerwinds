@@ -192,7 +192,13 @@ export default function DocumentDetailScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} keyboardShouldPersistTaps="handled">
           {doc !== null && (
             <>
-              <View style={{ width: photoWidth, height: heroHeight, alignSelf: "center" }}>
+              <View
+                style={{
+                  width: photoWidth,
+                  height: heroHeight,
+                  alignSelf: "center",
+                  backgroundColor: theme.backgroundElement,
+                }}>
                 <ScrollView
                   ref={heroScrollRef}
                   horizontal
@@ -201,7 +207,7 @@ export default function DocumentDetailScreen() {
                   onMomentumScrollEnd={handleScrollEnd}>
                   {photos.map((uri) => (
                     <Pressable key={uri} onPress={() => setViewerOpen(true)} accessibilityRole="button" accessibilityLabel="View full screen">
-                      <Image source={{ uri }} style={{ width: photoWidth, height: heroHeight }} contentFit="cover" />
+                      <Image source={{ uri }} style={{ width: photoWidth, height: heroHeight }} contentFit="contain" />
                     </Pressable>
                   ))}
                 </ScrollView>

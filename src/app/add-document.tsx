@@ -187,8 +187,8 @@ export default function AddDocumentScreen() {
       <Image
         key={photoUris[i]}
         source={{ uri: photoUris[i] }}
-        style={{ width: pageWidth, height: pageHeight }}
-        contentFit="cover"
+        style={{ width: pageWidth, height: pageHeight, backgroundColor: theme.backgroundElement }}
+        contentFit="contain"
       />,
     );
     dots.push(

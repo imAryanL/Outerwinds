@@ -1,8 +1,10 @@
-// The document vault. Photos are copied into a folder the app owns, so they survive
-// the original being deleted from the camera roll.
+// The document vault. Photos are normalized and copied into a folder the app owns, so
+// they survive the original being deleted from the camera roll.
 
 import { Directory, File, Paths } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
+
+import { normalizePhotoForVault } from '@/lib/document-image';
 
 // photo_uris is a JSON list, parsed where it's read.
 export type DocumentRow = {
@@ -16,14 +18,17 @@ export type DocumentRow = {
 };
 
 // The index keeps two photos saved in the same millisecond from sharing a name.
+// ⚠️ Always .jpg now, regardless of the source format — normalizePhotoForVault
+// re-encodes every photo to JPEG (it's what fixed the pinch/pan lag on fresh camera
+// photos, by baking in orientation and capping resolution once, at save time).
 async function copyIntoVault(sourceUri: string, index: number) {
   const vaultDir = new Directory(Paths.document, 'vault');
   vaultDir.create({ idempotent: true });
 
-  const extension = sourceUri.split('.').pop() ?? 'jpg';
-  const destFile = new File(vaultDir, `${Date.now()}-${index}.${extension}`);
+  const normalizedUri = await normalizePhotoForVault(sourceUri);
+  const destFile = new File(vaultDir, `${Date.now()}-${index}.jpg`);
 
-  await new File(sourceUri).copy(destFile);
+  await new File(normalizedUri).move(destFile);
 
   return destFile.uri;
 }

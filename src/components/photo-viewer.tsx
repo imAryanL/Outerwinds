@@ -9,8 +9,6 @@ import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from "react-nati
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
-const AnimatedImage = Animated.createAnimatedComponent(ExpoImage);
-
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const MAX_SCALE = 4;
 const DOUBLE_TAP_SCALE = 2.5;
@@ -166,10 +164,15 @@ function ZoomablePhoto({
     transform: [{ translateX: translateX.value }, { translateY: translateY.value }, { scale: scale.value }],
   }));
 
+  // The transform lives on this plain wrapping View, not on the image itself — a
+  // native image view (expo-image does its own caching/decoding under the hood) is
+  // heavier to push a transform through every frame than a bare View recompositing an
+  // already-rendered layer. That mismatch, not photo resolution, was the real cause of
+  // the pinch/pan choppiness.
   return (
     <GestureDetector gesture={gesture}>
-      <Animated.View style={styles.photoContainer}>
-        <AnimatedImage source={{ uri }} style={[styles.photo, animatedStyle]} contentFit="contain" />
+      <Animated.View style={[styles.photoContainer, animatedStyle]}>
+        <ExpoImage source={{ uri }} style={styles.photo} contentFit="contain" />
       </Animated.View>
     </GestureDetector>
   );
