@@ -26,7 +26,7 @@ import { PhotoViewer } from "@/components/photo-viewer";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Fonts, MaxContentWidth, Spacing } from "@/constants/theme";
-import { deleteDocument, getDocument, updateDocumentNotes, updateDocumentTitle, type DocumentRow } from "@/db/documents";
+import { deleteDocument, getDocument, getPhotoUris, updateDocumentNotes, updateDocumentTitle, type DocumentRow } from "@/db/documents";
 import { useExportDocumentPdf } from "@/hooks/use-export-document-pdf";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -90,7 +90,7 @@ export default function DocumentDetailScreen() {
       return;
     }
 
-    const photos: string[] = JSON.parse(doc.photo_uris);
+    const photos = getPhotoUris(doc);
     if (!(await Sharing.isAvailableAsync())) {
       return;
     }
@@ -153,7 +153,7 @@ export default function DocumentDetailScreen() {
     ]);
   }
 
-  const photos: string[] = doc !== null ? JSON.parse(doc.photo_uris) : [];
+  const photos: string[] = doc !== null ? getPhotoUris(doc) : [];
 
   return (
     <ThemedView style={{ flex: 1 }}>

@@ -8,7 +8,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { getDocument } from '@/db/documents';
+import { getDocument, getPhotoUris } from '@/db/documents';
 import { photoToPdfDataUri } from '@/lib/document-image';
 import { documentPdfHtml } from '@/lib/document-pdf-html';
 
@@ -32,7 +32,7 @@ export async function createDocumentPdf(
     throw new Error('Document not found');
   }
 
-  const photoUris: string[] = JSON.parse(doc.photo_uris);
+  const photoUris = getPhotoUris(doc);
   const dataUris = [];
   for (const uri of photoUris) {
     dataUris.push(await photoToPdfDataUri(uri));

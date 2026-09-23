@@ -6,7 +6,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { normalizePhotoForVault } from '@/lib/document-image';
 
-// photo_uris is a JSON list, parsed where it's read.
+// photo_uris is a JSON list — read it with getPhotoUris, never JSON.parse directly.
 export type DocumentRow = {
   id: number;
   title: string;
@@ -17,10 +17,26 @@ export type DocumentRow = {
   updated_at: string;
 };
 
+// The app's folder path changes on every App Store update, so only the file name
+// is trusted. Also handles older rows that saved the full path.
+function vaultPhotoUri(saved: string) {
+  const parts = saved.split('/');
+  const fileName = parts[parts.length - 1];
+  return new File(Paths.document, 'vault', fileName).uri;
+}
+
+// Every photo in a document, as paths that work right now. Read photo_uris through this.
+export function getPhotoUris(doc: DocumentRow) {
+  const saved: string[] = JSON.parse(doc.photo_uris);
+  const uris = [];
+  for (const entry of saved) {
+    uris.push(vaultPhotoUri(entry));
+  }
+  return uris;
+}
+
 // The index keeps two photos saved in the same millisecond from sharing a name.
-// ⚠️ Always .jpg now, regardless of the source format — normalizePhotoForVault
-// re-encodes every photo to JPEG (it's what fixed the pinch/pan lag on fresh camera
-// photos, by baking in orientation and capping resolution once, at save time).
+// Always .jpg — normalizePhotoForVault re-encodes every photo.
 async function copyIntoVault(sourceUri: string, index: number) {
   const vaultDir = new Directory(Paths.document, 'vault');
   vaultDir.create({ idempotent: true });
@@ -30,7 +46,8 @@ async function copyIntoVault(sourceUri: string, index: number) {
 
   await new File(normalizedUri).move(destFile);
 
-  return destFile.uri;
+  // Just the name, never the full path — see vaultPhotoUri.
+  return destFile.name;
 }
 
 /**
@@ -43,9 +60,9 @@ export async function saveDocument(
   sourceUris: string[],
   notes: string
 ) {
-  const permanentUris = [];
+  const fileNames = [];
   for (let i = 0; i < sourceUris.length; i++) {
-    permanentUris.push(await copyIntoVault(sourceUris[i], i));
+    fileNames.push(await copyIntoVault(sourceUris[i], i));
   }
 
   const now = new Date().toISOString();
@@ -56,7 +73,7 @@ export async function saveDocument(
     {
       $title: title,
       $category: category,
-      $photo_uris: JSON.stringify(permanentUris),
+      $photo_uris: JSON.stringify(fileNames),
       $notes: notes,
       $created_at: now,
       $updated_at: now,
@@ -119,7 +136,7 @@ export async function deleteDocument(db: SQLiteDatabase, id: number) {
     return;
   }
 
-  const uris: string[] = JSON.parse(doc.photo_uris);
+  const uris = getPhotoUris(doc);
   for (const uri of uris) {
     try {
       new File(uri).delete();
