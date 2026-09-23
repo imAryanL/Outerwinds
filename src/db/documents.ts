@@ -5,6 +5,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { normalizePhotoForVault } from '@/lib/document-image';
+import { cancelReminders } from '@/lib/reminders';
 
 // photo_uris is a JSON list — read it with getPhotoUris, never JSON.parse directly.
 export type DocumentRow = {
@@ -13,6 +14,7 @@ export type DocumentRow = {
   category: string;
   photo_uris: string;
   notes: string;
+  renews_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -128,6 +130,17 @@ export async function updateDocumentNotes(db: SQLiteDatabase, id: number, notes:
 }
 
 /**
+ * Sets or clears (null) the renewal date. Same shape as updateDocumentNotes.
+ */
+export async function setRenewalDate(db: SQLiteDatabase, id: number, renewsAt: string | null) {
+  await db.runAsync('UPDATE documents SET renews_at = $renews_at, updated_at = $updated_at WHERE id = $id', {
+    $renews_at: renewsAt,
+    $updated_at: new Date().toISOString(),
+    $id: id,
+  });
+}
+
+/**
  * Deletes the row and its photo files. A missing file is skipped, not a blocker.
  */
 export async function deleteDocument(db: SQLiteDatabase, id: number) {
@@ -146,4 +159,7 @@ export async function deleteDocument(db: SQLiteDatabase, id: number) {
   }
 
   await db.runAsync('DELETE FROM documents WHERE id = $id', { $id: id });
+
+  // SQLite can hand this id to the next new document, so stale reminders must go too.
+  await cancelReminders('renewal', id);
 }

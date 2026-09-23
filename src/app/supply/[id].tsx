@@ -2,7 +2,6 @@
 // Sits outside the tabs, so it covers the tab bar while open.
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Notifications from "expo-notifications";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
@@ -22,6 +21,7 @@ import {
 } from "@/db/inventory";
 import { useTheme } from "@/hooks/use-theme";
 import { daysUntil, expiryLabel, isExpiringSoon } from "@/lib/expiry";
+import { scheduleReminders } from "@/lib/reminders";
 import { iconFor } from "@/lib/supply-icons";
 
 // Only linked items have a target, and some have no unit (flashlights: just 3).
@@ -48,55 +48,14 @@ const EXPIRY_CHOICES = [
   { label: "1 year", months: 12 },
 ];
 
-// Fixed ids, so cancelling first is always safe — an unknown id is a no-op.
-async function scheduleExpiryReminders(id: number, name: string, expiresAt: string | null) {
-  const thirtyDayId = `expiry-30-${id}`;
-  const sevenDayId = `expiry-7-${id}`;
-
-  await Notifications.cancelScheduledNotificationAsync(thirtyDayId);
-  await Notifications.cancelScheduledNotificationAsync(sevenDayId);
-
-  if (expiresAt === null) {
-    return;
-  }
-
-  // The date still saves without permission; only the reminders need it.
-  const permission = await Notifications.getPermissionsAsync();
-  if (!permission.granted) {
-    return;
-  }
-
-  const expiry = new Date(expiresAt);
-  const now = new Date();
-
-  const thirtyDaysBefore = new Date(expiry);
-  thirtyDaysBefore.setDate(thirtyDaysBefore.getDate() - 30);
-
-  const sevenDaysBefore = new Date(expiry);
-  sevenDaysBefore.setDate(sevenDaysBefore.getDate() - 7);
-
-  // Skip a reminder that would already be in the past — it would just fire immediately.
-  if (thirtyDaysBefore > now) {
-    await Notifications.scheduleNotificationAsync({
-      identifier: thirtyDayId,
-      content: {
-        title: `${name} is due for replacing in 30 days`,
-        body: "Plan to restock or rotate it soon.",
-      },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: thirtyDaysBefore },
-    });
-  }
-
-  if (sevenDaysBefore > now) {
-    await Notifications.scheduleNotificationAsync({
-      identifier: sevenDayId,
-      content: {
-        title: `${name} is due for replacing in 7 days`,
-        body: "Time to restock or rotate it.",
-      },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: sevenDaysBefore },
-    });
-  }
+// Same wording as before the move — only the scheduling code is shared now.
+function scheduleExpiryReminders(id: number, name: string, expiresAt: string | null) {
+  return scheduleReminders("expiry", id, expiresAt, {
+    thirtyDayTitle: `${name} is due for replacing in 30 days`,
+    thirtyDayBody: "Plan to restock or rotate it soon.",
+    sevenDayTitle: `${name} is due for replacing in 7 days`,
+    sevenDayBody: "Time to restock or rotate it.",
+  });
 }
 
 export default function SupplyDetailScreen() {

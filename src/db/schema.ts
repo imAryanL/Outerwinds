@@ -5,7 +5,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 export const DATABASE_NAME = 'landfall.db';
 
 // Bump this by one every time a step is added to the ladder below.
-const DATABASE_VERSION = 8;
+const DATABASE_VERSION = 9;
 
 /**
  * Brings a database file up to the current version. Runs once when the app starts.
@@ -215,10 +215,20 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     currentVersion = 8;
   }
 
+  // --- Step 9 ------------------------------------------------------------------------
+  if (currentVersion === 8) {
+    // When a policy or ID needs renewing (Pro). Null until the user sets one.
+    await db.execAsync(`
+      ALTER TABLE documents ADD COLUMN renews_at TEXT;
+    `);
+
+    currentVersion = 9;
+  }
+
   // --- Future steps go here ----------------------------------------------------------
-  //   if (currentVersion === 8) {
+  //   if (currentVersion === 9) {
   //     ...
-  //     currentVersion = 9;
+  //     currentVersion = 10;
   //   }
 
   await db.execAsync(`PRAGMA user_version = ${currentVersion}`);

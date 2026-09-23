@@ -29,7 +29,7 @@ Offline-first, cross-platform hurricane-prep app for Florida households. React N
 ## Scope contract
 **IN (v1):** household onboarding + AI-personalized checklist (with offline rules-based fallback) · supply inventory CRUD (categories, quantities, expiration dates, photos) · local expiration notifications (30-day + 7-day) · NWS county-level watch/warning push alerts · active alerts screen · document vault (local; camera/photo import) · readiness score on home · manual cloud backup/restore (Supabase) · RevenueCat Free-vs-Pro paywall · both stores.
 
-**OUT (v2 parking lot — do not build):** evacuation routes / shelter maps / traffic · real-time family location or multi-user sync · post-storm damage workflow · widgets / Watch / Live Activities · Spanish localization (first v1.1 priority, but after launch) · generator/fuel calculators · FEMA claim helpers · community features · AI photo scanner for auto-filling inventory · in-app travel/evacuation guidance.
+**OUT (v2 parking lot — do not build):** evacuation routes / shelter maps / traffic · real-time family location or multi-user sync · post-storm damage workflow beyond Pro #5's before/after photo record (no damage estimates, claim advice or insurer integration) · widgets / Watch / Live Activities · Spanish localization (first v1.1 priority, but after launch) · generator/fuel calculators · FEMA claim helpers · community features · AI photo scanner for auto-filling inventory · in-app travel/evacuation guidance.
 
 **Scope rule:** any new idea mid-build = one line in the parking lot, zero code.
 

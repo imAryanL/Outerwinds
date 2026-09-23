@@ -1,6 +1,4 @@
-// One document, opened by tapping a row on the Documents tab. Mirrors supply/[id].tsx's
-// shape, but the photo itself is the hero — this is the first screen in the app where a
-// real photo, not an icon, is what the user actually came to look at.
+// One document's screen — the photo is the hero, with title, notes and renewal below.
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -23,12 +21,24 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { NotesEditorModal } from "@/components/notes-editor-modal";
 import { PhotoViewer } from "@/components/photo-viewer";
+import { RenewalDateModal } from "@/components/renewal-date-modal";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Fonts, MaxContentWidth, Spacing } from "@/constants/theme";
-import { deleteDocument, getDocument, getPhotoUris, updateDocumentNotes, updateDocumentTitle, type DocumentRow } from "@/db/documents";
+import {
+  deleteDocument,
+  getDocument,
+  getPhotoUris,
+  setRenewalDate,
+  updateDocumentNotes,
+  updateDocumentTitle,
+  type DocumentRow,
+} from "@/db/documents";
 import { useExportDocumentPdf } from "@/hooks/use-export-document-pdf";
 import { useTheme } from "@/hooks/use-theme";
+import { daysUntil, isExpiringSoon } from "@/lib/expiry";
+import { isPro } from "@/lib/pro";
+import { scheduleReminders } from "@/lib/reminders";
 
 // 'September 3' — spelled out here, unlike the list row's shorter 'Sep 3'.
 function addedLabel(createdAt: string) {
@@ -36,12 +46,40 @@ function addedLabel(createdAt: string) {
   return `Added ${date.toLocaleDateString("en-US", { month: "long", day: "numeric" })}`;
 }
 
+// 'Renews June 1, 2027', or a countdown in the last 30 days.
+function renewalLabel(renewsAt: string, daysLeft: number) {
+  const date = new Date(renewsAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
+  if (daysLeft > 30) {
+    return `Renews ${date}`;
+  }
+  if (daysLeft > 1) {
+    return `Renews in ${daysLeft} days · ${date}`;
+  }
+  if (daysLeft === 1) {
+    return `Renews tomorrow · ${date}`;
+  }
+  if (daysLeft === 0) {
+    return "Renews today";
+  }
+  return `Renewal was due ${date}`;
+}
+
+// Both reminders name the document, e.g. "Flood insurance renews in 30 days".
+function scheduleRenewalReminders(id: number, title: string, renewsAt: string | null) {
+  return scheduleReminders("renewal", id, renewsAt, {
+    thirtyDayTitle: `${title} renews in 30 days`,
+    thirtyDayBody: "Renew it before it lapses.",
+    sevenDayTitle: `${title} renews in 7 days`,
+    sevenDayBody: "Renew it before it lapses.",
+  });
+}
+
 export default function DocumentDetailScreen() {
   const theme = useTheme();
   const db = useSQLiteContext();
   const photoWidth = Math.min(useWindowDimensions().width, MaxContentWidth);
-  // A full square left too much empty space below the title/delete row on a real
-  // screen — 4:3 gives the photo a proper hero size without dominating the page.
+  // 4:3 — a full square left too much empty space below.
   const heroHeight = photoWidth * 0.75;
 
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -53,6 +91,7 @@ export default function DocumentDetailScreen() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
   const [editingNotes, setEditingNotes] = useState(false);
+  const [editingRenewal, setEditingRenewal] = useState(false);
   const heroScrollRef = useRef<ScrollView>(null);
   const { working: exporting, exportPdf } = useExportDocumentPdf(documentId);
 
@@ -64,8 +103,7 @@ export default function DocumentDetailScreen() {
     load();
   }, [db, documentId]);
 
-  // Keeps the hero's own paging in sync when the full-screen viewer changes the page —
-  // a no-op scroll when the hero caused the change itself.
+  // Keeps the hero in sync when the full-screen viewer changes the page.
   useEffect(() => {
     heroScrollRef.current?.scrollTo({ x: page * photoWidth, animated: false });
   }, [page, photoWidth]);
@@ -74,9 +112,7 @@ export default function DocumentDetailScreen() {
     setPage(Math.round(event.nativeEvent.contentOffset.x / photoWidth));
   }
 
-  // Normally pops back to the Documents tab. The fallback covers this screen being opened
-  // as the first route (a deep link), where there's no history to pop — same guard
-  // add-item.tsx already uses for the same reason.
+  // The fallback covers a deep link, where there's no history to pop.
   function leave() {
     if (router.canGoBack()) {
       router.back();
@@ -105,13 +141,13 @@ export default function DocumentDetailScreen() {
     setEditingTitle(true);
   }
 
-  // Fires on both the keyboard's Done and tapping away — no separate confirm/cancel
-  // buttons needed. Always exits edit mode, even when there's nothing worth saving.
+  // Fires on the keyboard's Done and on tapping away, so no confirm/cancel buttons.
   async function saveTitle() {
     if (doc !== null) {
       const trimmed = titleDraft.trim();
       if (trimmed.length > 0 && trimmed !== doc.title) {
         await updateDocumentTitle(db, documentId, trimmed);
+        await scheduleRenewalReminders(documentId, trimmed, doc.renews_at);
         setDoc({ ...doc, title: trimmed });
       }
     }
@@ -137,8 +173,40 @@ export default function DocumentDetailScreen() {
     setEditingNotes(false);
   }
 
-  // Deleting removes the photo files too, with no trash to recover from — worth an
-  // are-you-sure since this is the app's only delete flow that can't be undone.
+  // Setting a date is Pro; seeing one never is.
+  async function startEditingRenewal() {
+    if (!(await isPro(db))) {
+      // Stands in for the real paywall until RevenueCat exists.
+      Alert.alert("A Pro feature", "Unlock Pro to get reminders before this document needs renewing.", [{ text: "OK" }]);
+      return;
+    }
+    setEditingRenewal(true);
+  }
+
+  async function saveRenewal(date: Date) {
+    if (doc !== null) {
+      // 9 AM, so the reminders arrive in the morning rather than at midnight.
+      const renewal = new Date(date);
+      renewal.setHours(9, 0, 0, 0);
+      const renewsAt = renewal.toISOString();
+
+      await setRenewalDate(db, documentId, renewsAt);
+      await scheduleRenewalReminders(documentId, doc.title, renewsAt);
+      setDoc({ ...doc, renews_at: renewsAt });
+    }
+    setEditingRenewal(false);
+  }
+
+  async function removeRenewal() {
+    if (doc !== null) {
+      await setRenewalDate(db, documentId, null);
+      await scheduleRenewalReminders(documentId, doc.title, null);
+      setDoc({ ...doc, renews_at: null });
+    }
+    setEditingRenewal(false);
+  }
+
+  // Photos are deleted too, with no trash to recover from.
   function handleDelete() {
     Alert.alert("Delete document?", "This can't be undone.", [
       { text: "Cancel", style: "cancel" },
@@ -155,16 +223,21 @@ export default function DocumentDetailScreen() {
 
   const photos: string[] = doc !== null ? getPhotoUris(doc) : [];
 
+  // Amber from 30 days out, same as a supply that's due for replacing.
+  let renewalText = "Add a renewal date";
+  let renewalColor: string = theme.textSecondary;
+  if (doc !== null && doc.renews_at !== null) {
+    const daysLeft = daysUntil(doc.renews_at, new Date());
+    renewalText = renewalLabel(doc.renews_at, daysLeft);
+    renewalColor = isExpiringSoon(daysLeft) ? theme.warning : theme.text;
+  }
+
   return (
     <ThemedView style={{ flex: 1 }}>
-      {/* The back button sits 16-56pt from the edge, inside the default 50pt edge-swipe
-          zone — narrowing the zone stops it from eating the button's taps, without
-          losing the swipe-back gesture itself. */}
+      {/* Narrower edge-swipe zone, so it stops eating the back button's taps. */}
       <Stack.Screen options={{ gestureResponseDistance: { start: 12 } }} />
 
-      {/* A real row above the photo, not floating on top of it — so the photo starts
-          below the buttons instead of bleeding under them. Back doesn't need doc to be
-          loaded, so it's outside that check; Share does, so it stays gated. */}
+      {/* Its own row above the photo, so the photo doesn't bleed under the buttons. */}
       <SafeAreaView edges={["top"]}>
         <View style={styles.navBar}>
           <Pressable
@@ -258,11 +331,9 @@ export default function DocumentDetailScreen() {
                   </View>
                 </View>
 
-                {/* Opens the notes editor in its own modal (below) rather than inline —
-                    inline, the keyboard covered it with no reliable way to scroll it back
-                    into view; a dedicated sheet sidesteps that entirely. */}
-                <View style={styles.notesBlock}>
-                  <ThemedText type="small" themeColor="textTertiary" style={styles.notesLabel}>
+                {/* A modal, not inline — inline, the keyboard covered the field. */}
+                <View style={styles.fieldBlock}>
+                  <ThemedText type="small" themeColor="textTertiary" style={styles.fieldLabel}>
                     NOTES
                   </ThemedText>
 
@@ -271,11 +342,11 @@ export default function DocumentDetailScreen() {
                     accessibilityRole="button"
                     accessibilityLabel="Edit notes"
                     style={({ pressed }) => [
-                      styles.notesRow,
+                      styles.fieldRow,
                       { borderColor: theme.border, backgroundColor: theme.backgroundElement },
                       pressed && styles.pressed,
                     ]}>
-                    <ThemedText type="default" themeColor={doc.notes.length > 0 ? "text" : "textSecondary"} style={styles.notesRowText}>
+                    <ThemedText type="default" themeColor={doc.notes.length > 0 ? "text" : "textSecondary"} style={styles.fieldRowText}>
                       {doc.notes.length > 0
                         ? doc.notes
                         : "Add a note here like important information, a phone number, anything worth having handy."}
@@ -284,9 +355,28 @@ export default function DocumentDetailScreen() {
                   </Pressable>
                 </View>
 
-                {/* Distinct from the Share button up top, which only sends whichever single
-                    photo is on screen — this combines every photo into one file, the thing
-                    worth sending an adjuster. Same filled-row treatment as "Print my plan". */}
+                <View style={styles.fieldBlock}>
+                  <ThemedText type="small" themeColor="textTertiary" style={styles.fieldLabel}>
+                    RENEWS
+                  </ThemedText>
+
+                  <Pressable
+                    onPress={startEditingRenewal}
+                    accessibilityRole="button"
+                    accessibilityLabel="Set renewal date"
+                    style={({ pressed }) => [
+                      styles.fieldRow,
+                      { borderColor: theme.border, backgroundColor: theme.backgroundElement },
+                      pressed && styles.pressed,
+                    ]}>
+                    <ThemedText type="default" style={[styles.fieldRowText, { color: renewalColor }]}>
+                      {renewalText}
+                    </ThemedText>
+                    <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textSecondary} />
+                  </Pressable>
+                </View>
+
+                {/* Every photo in one file, unlike Share, which sends only the one on screen. */}
                 <Pressable
                   onPress={exportPdf}
                   disabled={exporting}
@@ -324,6 +414,13 @@ export default function DocumentDetailScreen() {
       </SafeAreaView>
 
       <NotesEditorModal visible={editingNotes} initialValue={doc?.notes ?? ""} onSave={saveNotes} />
+      <RenewalDateModal
+        visible={editingRenewal}
+        initialValue={doc?.renews_at ?? null}
+        onSave={saveRenewal}
+        onRemove={removeRenewal}
+        onClose={() => setEditingRenewal(false)}
+      />
     </ThemedView>
   );
 }
@@ -343,9 +440,6 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
   },
-  // A normal top-to-bottom flow, not flex/space-between — the notes field means there's
-  // usually real content to fill this space now instead of needing a layout trick to hide
-  // that there wasn't any.
   body: {
     padding: Spacing.four,
     maxWidth: MaxContentWidth,
@@ -359,13 +453,13 @@ const styles = StyleSheet.create({
   metaBlock: {
     gap: Spacing.two,
   },
-  notesBlock: {
+  fieldBlock: {
     gap: Spacing.two,
   },
-  notesLabel: {
+  fieldLabel: {
     letterSpacing: 0.5,
   },
-  notesRow: {
+  fieldRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.two,
@@ -374,7 +468,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.three,
   },
-  notesRowText: {
+  fieldRowText: {
     flex: 1,
   },
   titleEditRow: {
