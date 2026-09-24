@@ -5,7 +5,7 @@ import * as Notifications from 'expo-notifications';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ReadinessRing } from '@/components/readiness-ring';
@@ -24,11 +24,13 @@ import {
   type SoonestExpiring,
   type SupplyCoverage,
 } from '@/db/inventory';
+import { getAreas } from '@/db/property';
 import { useTheme } from '@/hooks/use-theme';
 import { levelFor, topAlert, type AlertLevel } from '@/lib/alert-rules';
 import { DOCUMENT_CATEGORIES } from '@/lib/document-categories';
 import { daysUntil, expiryLabel, isExpiringSoon } from '@/lib/expiry';
 import { type AlertData } from '@/lib/nws';
+import { isPro } from '@/lib/pro';
 import { iconFor, type IconName } from '@/lib/supply-icons';
 
 // One needs-attention card. id is the supply it's about — where tapping the card goes.
@@ -234,6 +236,20 @@ export default function HomeScreen() {
     }, [db])
   );
 
+  // Pro gates starting a record, never opening one that already has areas.
+  async function openPropertyRecord() {
+    const areas = await getAreas(db);
+    if (areas.length === 0 && !(await isPro(db))) {
+      Alert.alert(
+        'A Pro feature',
+        'Unlock Pro to keep a dated before-and-after record of your home.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    router.push('/property');
+  }
+
   const breakdown = buildBreakdown(progress, household, coverage, coveredCategories, notificationsGranted);
   const readinessScore = computeReadinessScore(breakdown);
 
@@ -398,6 +414,40 @@ export default function HomeScreen() {
             />
           </ThemedView>
           )}
+
+          {/* Last on purpose: a once-a-season job, not something to act on today. */}
+          <View style={styles.propertySection}>
+            <View style={styles.sectionHeaderRow}>
+              <ThemedText type="smallBold">Storm property record</ThemedText>
+            </View>
+
+            <Pressable
+              onPress={openPropertyRecord}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.propertyRow,
+                { backgroundColor: theme.backgroundElement },
+                pressed && styles.pressed,
+              ]}
+            >
+              <View style={[styles.propertyIconDisc, { backgroundColor: theme.backgroundSelected }]}>
+                <MaterialCommunityIcons name="home-outline" size={20} color={theme.primaryDeep} />
+              </View>
+
+              <View style={styles.propertyText}>
+                <ThemedText type="smallBold">Photograph your home</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  Dated before and after photos
+                </ThemedText>
+              </View>
+
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={22}
+                color={theme.textSecondary}
+              />
+            </Pressable>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -525,5 +575,26 @@ const styles = StyleSheet.create({
   barFill: {
     height: '100%',
     borderRadius: Spacing.two,
+  },
+  propertySection: {
+    gap: Spacing.two,
+  },
+  propertyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: Spacing.four,
+    padding: Spacing.three,
+    gap: Spacing.three,
+  },
+  propertyIconDisc: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  propertyText: {
+    flex: 1,
+    gap: Spacing.half,
   },
 });

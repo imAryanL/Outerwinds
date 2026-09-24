@@ -24,9 +24,18 @@ type PhotoViewerProps = {
   index: number;
   onChangeIndex: (index: number) => void;
   onClose: () => void;
+  // One per photo, shown in place of the "1 / 2" count (e.g. "Before · Aug 8, 2012").
+  labels?: string[];
 };
 
-export function PhotoViewer({ photos, index, onChangeIndex, onClose }: PhotoViewerProps) {
+export function PhotoViewer({ photos, index, onChangeIndex, onClose, labels }: PhotoViewerProps) {
+  let counterText: string | null = null;
+  if (labels !== undefined) {
+    counterText = labels[index];
+  } else if (photos.length > 1) {
+    counterText = `${index + 1} / ${photos.length}`;
+  }
+
   return (
     <Modal visible animationType="fade" onRequestClose={onClose}>
       <View style={styles.container}>
@@ -50,11 +59,9 @@ export function PhotoViewer({ photos, index, onChangeIndex, onClose }: PhotoView
           <MaterialCommunityIcons name="close" size={22} color="#FFFFFF" />
         </Pressable>
 
-        {photos.length > 1 && (
+        {counterText !== null && (
           <View style={styles.counter} pointerEvents="none">
-            <Text style={styles.counterText}>
-              {index + 1} / {photos.length}
-            </Text>
+            <Text style={styles.counterText}>{counterText}</Text>
           </View>
         )}
       </View>

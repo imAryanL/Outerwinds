@@ -21,7 +21,7 @@ export type DocumentRow = {
 
 // The app's folder path changes on every App Store update, so only the file name
 // is trusted. Also handles older rows that saved the full path.
-function vaultPhotoUri(saved: string) {
+export function vaultPhotoUri(saved: string) {
   const parts = saved.split('/');
   const fileName = parts[parts.length - 1];
   return new File(Paths.document, 'vault', fileName).uri;
@@ -39,7 +39,7 @@ export function getPhotoUris(doc: DocumentRow) {
 
 // The index keeps two photos saved in the same millisecond from sharing a name.
 // Always .jpg — normalizePhotoForVault re-encodes every photo.
-async function copyIntoVault(sourceUri: string, index: number) {
+export async function copyIntoVault(sourceUri: string, index: number) {
   const vaultDir = new Directory(Paths.document, 'vault');
   vaultDir.create({ idempotent: true });
 

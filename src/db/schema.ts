@@ -5,7 +5,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 export const DATABASE_NAME = 'landfall.db';
 
 // Bump this by one every time a step is added to the ladder below.
-const DATABASE_VERSION = 9;
+const DATABASE_VERSION = 10;
 
 /**
  * Brings a database file up to the current version. Runs once when the app starts.
@@ -225,10 +225,34 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     currentVersion = 9;
   }
 
+  // --- Step 10 -----------------------------------------------------------------------
+  if (currentVersion === 9) {
+    // Storm Property Record (Pro): one row per area, each with a Before and an After photo.
+    await db.execAsync(`
+      CREATE TABLE property_areas (
+        id INTEGER PRIMARY KEY NOT NULL,
+
+        name TEXT NOT NULL,
+
+        -- File names in the vault folder, never full paths. Null until a photo is added.
+        before_photo TEXT,
+        before_taken_at TEXT,
+        after_photo TEXT,
+        after_taken_at TEXT,
+
+        notes TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `);
+
+    currentVersion = 10;
+  }
+
   // --- Future steps go here ----------------------------------------------------------
-  //   if (currentVersion === 9) {
+  //   if (currentVersion === 10) {
   //     ...
-  //     currentVersion = 10;
+  //     currentVersion = 11;
   //   }
 
   await db.execAsync(`PRAGMA user_version = ${currentVersion}`);
