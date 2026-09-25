@@ -2,7 +2,7 @@
 
 # Outerwinds
 
-Offline-first, cross-platform hurricane-prep app for Florida households. React Native + Expo, shipping to **both** the App Store and Google Play from one codebase. Full context lives in `/Users/aryan/Desktop/Landfall_Project_Brief.md` — read it for anything not covered here (the brief predates the rename and still says "Landfall" throughout; the project is the same, only the name changed).
+Offline-first hurricane-prep app for Florida households. React Native + Expo, shipping to the **App Store only**. Google Play is permanently out: decided Sep 25 2026 (device verification, the 12-tester/14-day closed test, and Google showing a personal developer's home address on monetized apps). Don't relitigate it. Keep the Android build compiling since it costs nothing, but never spend work on Play. Full context lives in `/Users/aryan/Desktop/Landfall_Project_Brief.md` — read it for anything not covered here (the brief predates the rename and still says "Landfall" throughout; the project is the same, only the name changed).
 
 ## Your role (in priority order)
 1. **Build partner and scope guardian.** Aryan is the sole decision-maker; you advise, build, and guard scope.
@@ -11,7 +11,7 @@ Offline-first, cross-platform hurricane-prep app for Florida households. React N
 4. **First React Native project.** Aryan is an experienced dev (Swift/SwiftUI, TypeScript, Next.js) but new to RN/Expo. Explain RN/Expo concepts by mapping to what he knows — don't be condescending. Always explain *what* and *why* in simple terms; treat changes as teaching moments. Give a one-sentence summary per task for his notes.
 
 ## Stack (locked — pick once, don't churn)
-- **Framework:** React Native + **Expo (managed)**, TypeScript. Expo SDK **~56**. EAS Build for both stores. No bare workflow, no custom native modules in v1.
+- **Framework:** React Native + **Expo (managed)**, TypeScript. Expo SDK **~57**. EAS Build for iOS / App Store. No bare workflow, no custom native modules in v1.
 - **Navigation:** **Expo Router** (file-based, like Next.js App Router) — already the scaffold default.
 - **Local data (source of truth):** **expo-sqlite**. Every feature reads/writes the local DB first.
 - **Cloud:** **Supabase** — auth (email + Apple/Google), Postgres for backup + push registry, Storage for Pro doc backup, Edge Functions for the alert pipeline.
@@ -27,7 +27,7 @@ Offline-first, cross-platform hurricane-prep app for Florida households. React N
 - **QA gate:** a full airplane-mode regression pass is required before submission.
 
 ## Scope contract
-**IN (v1):** household onboarding + AI-personalized checklist (with offline rules-based fallback) · supply inventory CRUD (categories, quantities, expiration dates, photos) · local expiration notifications (30-day + 7-day) · NWS county-level watch/warning push alerts · active alerts screen · document vault (local; camera/photo import) · readiness score on home · manual cloud backup/restore (Supabase) · RevenueCat Free-vs-Pro paywall · both stores.
+**IN (v1):** household onboarding + AI-personalized checklist (with offline rules-based fallback) · supply inventory CRUD (categories, quantities, expiration dates, photos) · local expiration notifications (30-day + 7-day) · NWS county-level watch/warning push alerts · active alerts screen · document vault (local; camera/photo import) · readiness score on home · manual cloud backup/restore (Supabase) · RevenueCat Free-vs-Pro paywall · App Store release (US; leave the EU out of availability so the DSA trader-address rule doesn't apply).
 
 **OUT (v2 parking lot — do not build):** evacuation routes / shelter maps / traffic · real-time family location or multi-user sync · post-storm damage workflow beyond Pro #5's before/after photo record (no damage estimates, claim advice or insurer integration) · widgets / Watch / Live Activities · Spanish localization (first v1.1 priority, but after launch) · generator/fuel calculators · FEMA claim helpers · community features · AI photo scanner for auto-filling inventory · in-app travel/evacuation guidance.
 
@@ -69,4 +69,4 @@ Most of the app is local — only 3 areas touch the network. Default to local; p
 - Subagents: start with zero custom agents; use built-ins first. Only add a custom code-reviewer agent if the same need recurs 3+ times. Building agent architecture instead of the app is a known procrastination risk here.
 
 ## Critical path
-Google Play closed test needs 12+ testers for 14 continuous days before production. If the Play clock starts late, only Play slips — protect that date.
+App Store only: TestFlight beta → App Review. Google Play is out of scope (see top), so there's no 12-tester/14-day clock to protect.
