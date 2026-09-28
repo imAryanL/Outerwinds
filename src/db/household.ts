@@ -180,6 +180,22 @@ export async function saveHousehold(db: SQLiteDatabase, draft: OnboardingDraft) 
   });
 }
 
+// Fills in the NWS columns for a household that finished onboarding offline.
+export async function savePoint(db: SQLiteDatabase, point: PointData) {
+  await db.runAsync(
+    `UPDATE household SET county = $county, nws_zone_id = $zone_id, nws_office = $office,
+      place = $place, updated_at = $updated_at WHERE id = $id`,
+    {
+      $id: HOUSEHOLD_ID,
+      $county: point.county,
+      $zone_id: point.zoneId,
+      $office: point.office,
+      $place: formatPlace(point),
+      $updated_at: new Date().toISOString(),
+    }
+  );
+}
+
 // Saves an edit made from Settings. UPDATE rather than INSERT OR REPLACE so created_at
 // survives — replacing the row would stamp it with today's date on every edit.
 export async function updateHousehold(db: SQLiteDatabase, values: HouseholdEdit) {

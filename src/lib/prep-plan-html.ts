@@ -63,7 +63,7 @@ export function prepPlanHtml(plan: PrepPlan): string {
     }
   }
 
-  // Repeated at the foot of every page, so a stray second page still says whose it is.
+  // Name + date line at the end of the plan.
   const footLine = [
     household?.name ? household.name : 'Outerwinds storm plan',
     formatDate(plan.generatedAt),
@@ -185,12 +185,10 @@ export function prepPlanHtml(plan: PrepPlan): string {
          works as a record of what you have. */
       .done td { color: #9ca3af; }
 
-      /* Keeps a category heading with at least some of its rows instead of stranding
-         it at the foot of a page. */
+      /* Keeps a category heading with its rows instead of stranding it at a page foot. */
       .group { page-break-inside: avoid; }
 
-      /* Repeats on every printed page: a fixed element is drawn once per page by both
-         WebKit and Chrome. Without it, page two is anonymous if the pages get separated. */
+      /* expo-print draws this once, at the end, NOT on every page (checked on a real PDF). */
       .running-foot {
         position: fixed;
         bottom: 0;

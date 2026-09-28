@@ -257,7 +257,7 @@ export default function SettingsScreen() {
                   <MaterialCommunityIcons name="bell-outline" size={20} color={theme.primaryDeep} />
                 </View>
                 <View style={styles.rowText}>
-                  <ThemedText style={styles.rowTitle}>Storm and supply alerts</ThemedText>
+                  <ThemedText style={styles.rowTitle}>Reminders</ThemedText>
                 </View>
                 <ThemedText themeColor="textSecondary" style={styles.rowValue}>
                   {statusText}

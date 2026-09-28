@@ -25,9 +25,9 @@ import {
 import { useTheme } from "@/hooks/use-theme";
 import { getCachedAlerts, saveAlerts, type CachedAlerts } from "@/db/alerts";
 import { getChecklist, type ChecklistItemRow } from "@/db/checklist";
-import { getHousehold } from "@/db/household";
+import { getHousehold, savePoint } from "@/db/household";
 import { formatTime, levelFor, timelineFor, topAlert } from "@/lib/alert-rules";
-import { fetchActiveAlerts } from "@/lib/nws";
+import { fetchActiveAlerts, fetchPointData, formatPlace } from "@/lib/nws";
 import { seasonPercent } from "@/lib/season";
 
 const NEXT_STEP_COUNT = 3;
@@ -71,11 +71,22 @@ export default function AlertsScreen() {
     const household = await getHousehold(db);
     setPlace(household?.place ?? null);
 
-    // No zone = onboarded offline, nothing to ask NWS about.
-    if (!household?.nws_zone_id) {
+    // Onboarded offline: the ZIP's coordinates were saved, so try the zone lookup again.
+    let zoneId = household?.nws_zone_id ?? null;
+    if (zoneId === null && household?.latitude != null && household.longitude != null) {
+      const point = await fetchPointData(household.latitude, household.longitude);
+      if (point !== null) {
+        await savePoint(db, point);
+        setPlace(formatPlace(point));
+        zoneId = point.zoneId;
+      }
+    }
+
+    // Still no zone, so this is the no-signal, nothing-saved state rather than a blank tab.
+    if (zoneId === null) {
+      setIsOffline(true);
       return;
     }
-    const zoneId = household.nws_zone_id;
 
     // The saved answer goes up first, then gets replaced if NWS answers.
     setResult(await getCachedAlerts(db, zoneId));

@@ -7,30 +7,22 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useOnboardingDraft } from '@/components/onboarding/onboarding-draft';
 import { OnboardingHeader, TOTAL_STEPS } from '@/components/onboarding/onboarding-header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { requestNotificationPermission } from '@/lib/notifications';
-import { formatPlace } from '@/lib/nws';
 
 const CURRENT_STEP = 4;
 
-// The only two the app sends. An off-season check-in was cut as a third.
+// Only what v1 actually sends. Storm alerts come back here when push ships (v1.1).
 const NOTIFICATION_TYPES = [
-  {
-    id: 'storm',
-    icon: 'weather-hurricane',
-    title: 'Storm watches and warnings',
-    detail: 'Only when the National Weather Service issues one for your area.',
-  },
   {
     id: 'expiring',
     icon: 'clock-alert-outline',
-    title: 'Supplies due for replacing',
-    detail: '30 and 7 days before a supply is due.',
+    title: 'When a supply needs replacing',
+    detail: "We'll remind you a month and a week before.",
   },
 ] as const;
 
@@ -44,16 +36,6 @@ type ChoiceId = 'on' | 'later';
 
 export default function NotificationsScreen() {
   const theme = useTheme();
-  const { draft } = useOnboardingDraft();
-
-  // Names the place from screen 3, or the plain sentence if the lookup was offline.
-  let subtitle = 'Just two kinds of notifications.';
-  if (draft.point !== null) {
-    subtitle =
-      'Just two kinds of notifications, and only about ' +
-      formatPlace(draft.point) +
-      '.';
-  }
 
   // Local, not in the draft — the real answer lives in the phone's settings.
   const [choice, setChoice] = useState<ChoiceId | null>(null);
@@ -156,7 +138,7 @@ export default function NotificationsScreen() {
             <ThemedText style={styles.title}>How we&apos;ll interrupt you</ThemedText>
 
             <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-              {subtitle}
+              Only reminders about your supplies.
             </ThemedText>
           </View>
 
@@ -167,11 +149,6 @@ export default function NotificationsScreen() {
 
           {/* Cards, not pills — two lines of text don't fit a pill. */}
           <View style={styles.choices}>{choiceRows}</View>
-
-          <ThemedText themeColor="textSecondary" style={styles.attribution}>
-            Alerts come from the National Weather Service — the official source. Outerwinds
-            never invents a forecast of its own.
-          </ThemedText>
         </ScrollView>
 
         <View style={styles.footer}>
@@ -261,11 +238,6 @@ const styles = StyleSheet.create({
   choices: {
     marginTop: Spacing.five,
     gap: Spacing.two,
-  },
-  attribution: {
-    marginTop: Spacing.four,
-    fontSize: 13,
-    lineHeight: 18,
   },
   choiceRow: {
     flexDirection: 'row',

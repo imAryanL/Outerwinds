@@ -2,7 +2,7 @@
 
 # Outerwinds
 
-Offline-first, cross-platform hurricane-prep app for Florida households. React Native + Expo, shipping to **both** the App Store and Google Play from one codebase. Full context lives in `/Users/aryan/Desktop/Landfall_Project_Brief.md` — read it for anything not covered here (the brief predates the rename and still says "Landfall" throughout; the project is the same, only the name changed).
+Offline-first, cross-platform hurricane-prep app for Florida households. React Native + Expo, built cross-platform (tested on Android) but **shipping v1 to the App Store only** — Google Play is parked, not built (see "Google Play — parked" below). Full context lives in `/Users/aryan/Desktop/Landfall_Project_Brief.md` — read it for anything not covered here (the brief predates the rename and still says "Landfall" throughout; the project is the same, only the name changed).
 
 ## Your role (in priority order)
 1. **Build partner and scope guardian.** Aryan is the sole decision-maker; you advise, build, and guard scope.
@@ -11,7 +11,7 @@ Offline-first, cross-platform hurricane-prep app for Florida households. React N
 4. **First React Native project.** Aryan is an experienced dev (Swift/SwiftUI, TypeScript, Next.js) but new to RN/Expo. Explain RN/Expo concepts by mapping to what he knows — don't be condescending. Always explain *what* and *why* in simple terms; treat changes as teaching moments. Give a one-sentence summary per task for his notes.
 
 ## Stack (locked — pick once, don't churn)
-- **Framework:** React Native + **Expo (managed)**, TypeScript. Expo SDK **~56**. EAS Build for both stores. No bare workflow, no custom native modules in v1.
+- **Framework:** React Native + **Expo (managed)**, TypeScript. Expo SDK **~57**. EAS Build for both stores. No bare workflow, no custom native modules in v1.
 - **Navigation:** **Expo Router** (file-based, like Next.js App Router) — already the scaffold default.
 - **Local data (source of truth):** **expo-sqlite**. Every feature reads/writes the local DB first.
 - **Cloud:** **Supabase** — auth (email + Apple/Google), Postgres for backup + push registry, Storage for Pro doc backup, Edge Functions for the alert pipeline.
@@ -64,9 +64,12 @@ Most of the app is local — only 3 areas touch the network. Default to local; p
 
 ## Conventions
 - Match the scaffold's existing style: kebab-case filenames, `@/` path alias, theme tokens from `src/constants/theme.ts` (`Colors`, `Fonts`, `Spacing`).
-- **Read the versioned Expo v56 docs before writing Expo code** (see AGENTS.md) — the API has changed across SDKs.
+- **Read the versioned Expo v57 docs before writing Expo code** (see AGENTS.md) — the API has changed across SDKs.
 - **Do NOT run `npm audit fix --force`** — it breaks Expo's pinned dependency versions.
 - Subagents: start with zero custom agents; use built-ins first. Only add a custom code-reviewer agent if the same need recurs 3+ times. Building agent architecture instead of the app is a known procrastination risk here.
 
 ## Critical path
-Google Play closed test needs 12+ testers for 14 continuous days before production. If the Play clock starts late, only Play slips — protect that date.
+v1 ships to the **App Store only**. RevenueCat/paywall, privacy policy, and store assets are what's left.
+
+## Google Play — parked (Sep 27 2026, don't relitigate)
+Decided against shipping v1 to Google Play. Reasons: (1) the 2026 rules got materially heavier since the June plan — mandatory government-ID developer verification, and Google now checks that closed-test testers *genuinely* used the app (not just installed), plus a written production-access application; this is ongoing coordination work, not the "$25 and wait 14 days" it was scoped as. (2) The résumé value (React Native, offline-first, cross-platform code, RevenueCat) is already earned by the code and the App Store listing — Play was the differentiator on top, not the core claim. (3) Aryan has a next project (an ML web app) queued and finite time. The $25 developer account is one-time/forever and not tied to this app — it's available if Play is ever revisited for this or a future app. Don't re-open this without a real change in circumstances (e.g. he decides to revisit it himself).

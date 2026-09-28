@@ -4,14 +4,14 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
-import { addAreas } from '@/db/property';
+import { addAreas, getAreas } from '@/db/property';
 import { useTheme } from '@/hooks/use-theme';
 import { AREA_SECTIONS } from '@/lib/property-areas';
 
@@ -23,6 +23,20 @@ export default function PickAreasScreen() {
   const [customName, setCustomName] = useState('');
   const [customAreas, setCustomAreas] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [savedNames, setSavedNames] = useState<string[]>([]);
+
+  // Areas already in the record get no chip, so they can't be added twice.
+  useEffect(() => {
+    async function loadSaved() {
+      const rows = await getAreas(db);
+      const names = [];
+      for (const row of rows) {
+        names.push(row.name);
+      }
+      setSavedNames(names);
+    }
+    loadSaved();
+  }, [db]);
 
   function toggleArea(name: string) {
     if (picked.includes(name)) {
@@ -36,6 +50,13 @@ export default function PickAreasScreen() {
   function addCustomArea() {
     const name = customName.trim();
     if (name === '') {
+      return;
+    }
+
+    // Its chip is hidden, so selecting it would add an invisible duplicate.
+    if (savedNames.includes(name)) {
+      Alert.alert('Already added', `${name} is already in your record.`);
+      setCustomName('');
       return;
     }
 
@@ -119,12 +140,18 @@ export default function PickAreasScreen() {
     );
   }
 
-  // Two loops: one per section, one for its chips.
   const sectionBlocks = [];
   for (const section of AREA_SECTIONS) {
     const chips = [];
     for (const name of section.areas) {
-      chips.push(renderChip(name));
+      if (!savedNames.includes(name)) {
+        chips.push(renderChip(name));
+      }
+    }
+
+    // Every area in this section is already saved, so skip its heading too.
+    if (chips.length === 0) {
+      continue;
     }
 
     sectionBlocks.push(

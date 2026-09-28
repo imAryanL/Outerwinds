@@ -7,7 +7,7 @@ import { Platform } from 'react-native';
 export async function requestNotificationPermission() {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'Storm and supply alerts',
+      name: 'Reminders',
       importance: Notifications.AndroidImportance.HIGH,
     });
   }
