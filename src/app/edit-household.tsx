@@ -24,6 +24,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { addNewlyApplicableItems, updateTargets } from '@/db/checklist';
 import { getHousehold, updateHousehold } from '@/db/household';
+import { syncPushRegistration } from '@/lib/notifications';
 import { addSuppliesFor } from '@/db/inventory';
 import { fetchPointData, formatPlace, type PointData } from '@/lib/nws';
 import { lookupZip } from '@/lib/zip-lookup';
@@ -179,6 +180,8 @@ export default function EditHouseholdScreen() {
     };
 
     await updateHousehold(db, values);
+    // Not awaited — a new ZIP means a new zone, and leaving shouldn't wait on the network.
+    syncPushRegistration(db);
     await updateTargets(db, adults, kids, pets);
 
     // Add-only: items that start applying are added, and nothing is ever taken away.

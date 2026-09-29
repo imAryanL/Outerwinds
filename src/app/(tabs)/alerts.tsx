@@ -26,6 +26,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { getCachedAlerts, saveAlerts, type CachedAlerts } from "@/db/alerts";
 import { getChecklist, type ChecklistItemRow } from "@/db/checklist";
 import { getHousehold, savePoint } from "@/db/household";
+import { syncPushRegistration } from "@/lib/notifications";
 import { formatTime, levelFor, timelineFor, topAlert } from "@/lib/alert-rules";
 import { fetchActiveAlerts, fetchPointData, formatPlace } from "@/lib/nws";
 import { seasonPercent } from "@/lib/season";
@@ -77,6 +78,8 @@ export default function AlertsScreen() {
       const point = await fetchPointData(household.latitude, household.longitude);
       if (point !== null) {
         await savePoint(db, point);
+        // The zone just landed, so the server can finally learn it.
+        syncPushRegistration(db);
         setPlace(formatPlace(point));
         zoneId = point.zoneId;
       }

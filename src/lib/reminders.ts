@@ -61,3 +61,24 @@ export async function scheduleReminders(
     });
   }
 }
+
+// The wording for each kind, kept here so the screens and the re-queue after permission
+// is granted can't drift apart.
+export function scheduleExpiryReminders(id: number, name: string, expiresAt: string | null) {
+  return scheduleReminders('expiry', id, expiresAt, {
+    thirtyDayTitle: `${name} is due for replacing in 30 days`,
+    thirtyDayBody: 'Plan to restock or rotate it soon.',
+    sevenDayTitle: `${name} is due for replacing in 7 days`,
+    sevenDayBody: 'Time to restock or rotate it.',
+  });
+}
+
+// Both reminders name the document, e.g. "Flood insurance renews in 30 days".
+export function scheduleRenewalReminders(id: number, title: string, renewsAt: string | null) {
+  return scheduleReminders('renewal', id, renewsAt, {
+    thirtyDayTitle: `${title} renews in 30 days`,
+    thirtyDayBody: 'Renew it before it lapses.',
+    sevenDayTitle: `${title} renews in 7 days`,
+    sevenDayBody: 'Renew it before it lapses.',
+  });
+}

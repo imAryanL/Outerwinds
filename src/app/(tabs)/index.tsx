@@ -26,7 +26,7 @@ import {
 } from '@/db/inventory';
 import { getAreas } from '@/db/property';
 import { useTheme } from '@/hooks/use-theme';
-import { levelFor, topAlert, type AlertLevel } from '@/lib/alert-rules';
+import { isFreshEnoughForCalm, levelFor, topAlert, type AlertLevel } from '@/lib/alert-rules';
 import { DOCUMENT_CATEGORIES } from '@/lib/document-categories';
 import { daysUntil, expiryLabel, isExpiringSoon } from '@/lib/expiry';
 import { type AlertData } from '@/lib/nws';
@@ -261,8 +261,16 @@ export default function HomeScreen() {
   }
 
   // The same two helpers the Alerts tab uses, so the screens can't disagree.
-  const stormLevel = alerts === null ? null : levelFor(alerts.alerts);
+  let stormLevel = alerts === null ? null : levelFor(alerts.alerts);
   const stormAlert = alerts === null ? null : topAlert(alerts.alerts);
+
+  // Home never fetches, so a saved "all clear" gets old. Watches and warnings keep showing
+  // (they drop off when their end time passes); only the calm claim needs a recent check.
+  const showStormRow =
+    alerts !== null && (stormLevel !== 'calm' || isFreshEnoughForCalm(alerts.checkedAt));
+  if (!showStormRow) {
+    stormLevel = null;
+  }
 
   // NWS's own event name — never our own words for what the storm is.
   let stormLabel = 'No active alerts';
@@ -395,8 +403,8 @@ export default function HomeScreen() {
           </View>
           )}
 
-          {/* Points into Alerts. Hidden until Alerts has saved an answer. */}
-          {alerts !== null && (
+          {/* Points into Alerts. Hidden until Alerts has saved an answer, and when a saved all-clear is stale. */}
+          {showStormRow && (
           <ThemedView type="backgroundElement" style={styles.stormRow}>
             <View style={[styles.stormDot, { backgroundColor: stormDotColor }]} />
 

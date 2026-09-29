@@ -20,6 +20,29 @@ function isStormEvent(event: string) {
   return false;
 }
 
+// NWS keeps sending an alert's end time, but a saved answer never expires on its own. Without
+// this, a warning that ended days ago would still show as running.
+export function stillRunning(alerts: AlertData[]): AlertData[] {
+  const now = new Date();
+  const running: AlertData[] = [];
+
+  for (const alert of alerts) {
+    if (alert.ends === null || new Date(alert.ends) > now) {
+      running.push(alert);
+    }
+  }
+
+  return running;
+}
+
+// How old a saved "all clear" can be before it stops counting. A watch or warning can be
+// issued at any hour, so an old quiet answer says nothing about right now.
+const CALM_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
+export function isFreshEnoughForCalm(checkedAt: string) {
+  return Date.now() - new Date(checkedAt).getTime() < CALM_MAX_AGE_MS;
+}
+
 /**
  * The worst thing running, since the screen shows one state. A warning outranks a watch:
  * 'expected' is worse news than 'possible', and the more serious one is what to act on.

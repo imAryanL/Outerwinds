@@ -260,6 +260,18 @@ export type SoonestExpiring = {
   expires_at: string;
 };
 
+// Every supply with a date, for re-queueing its reminders.
+export async function getExpiringSupplies(db: SQLiteDatabase) {
+  return db.getAllAsync<SoonestExpiring>(
+    `SELECT inventory_items.id,
+            ${DISPLAY_NAME},
+            inventory_items.expires_at
+       FROM inventory_items
+       LEFT JOIN checklist_items ON checklist_items.id = inventory_items.checklist_item_id
+      WHERE inventory_items.expires_at IS NOT NULL`
+  );
+}
+
 /**
  * The supply with the nearest expiry date. Whether it's SOON is Home's call.
  */

@@ -15,7 +15,7 @@ import { countLabel } from "@/lib/format";
 import { getHousehold, type Household } from "@/db/household";
 import { usePrintPlan } from "@/hooks/use-print-plan";
 import { useTheme } from "@/hooks/use-theme";
-import { requestNotificationPermission } from "@/lib/notifications";
+import { registerPushToken, requestNotificationPermission, rescheduleAllReminders } from "@/lib/notifications";
 import { isPro, setProForDevelopment } from "@/lib/pro";
 
 // The saved home_type is an id. Spelled out here rather than importing the onboarding
@@ -78,8 +78,17 @@ export default function SettingsScreen() {
   // The popup only shows once (iOS) or twice (Android). After that, only Settings can turn them on.
   async function turnOn() {
     if (canAsk) {
-      await requestNotificationPermission();
+      const result = await requestNotificationPermission();
       await readPermission();
+
+      if (result.granted) {
+        rescheduleAllReminders(db);
+      }
+
+      // Not awaited, same as onboarding. No zone means the ZIP lookup never landed.
+      if (result.granted && household?.nws_zone_id) {
+        registerPushToken(household.nws_zone_id);
+      }
     } else {
       await Linking.openSettings();
     }
@@ -257,7 +266,7 @@ export default function SettingsScreen() {
                   <MaterialCommunityIcons name="bell-outline" size={20} color={theme.primaryDeep} />
                 </View>
                 <View style={styles.rowText}>
-                  <ThemedText style={styles.rowTitle}>Reminders</ThemedText>
+                  <ThemedText style={styles.rowTitle}>Storm alerts and reminders</ThemedText>
                 </View>
                 <ThemedText themeColor="textSecondary" style={styles.rowValue}>
                   {statusText}

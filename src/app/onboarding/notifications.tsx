@@ -7,17 +7,24 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useOnboardingDraft } from '@/components/onboarding/onboarding-draft';
 import { OnboardingHeader, TOTAL_STEPS } from '@/components/onboarding/onboarding-header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { requestNotificationPermission } from '@/lib/notifications';
+import { registerPushToken, requestNotificationPermission } from '@/lib/notifications';
 
 const CURRENT_STEP = 4;
 
-// Only what v1 actually sends. Storm alerts come back here when push ships (v1.1).
+// Only what the app actually sends: storm alerts from the server, and supply reminders.
 const NOTIFICATION_TYPES = [
+  {
+    id: 'storm',
+    icon: 'weather-hurricane',
+    title: 'Storm watches and warnings',
+    detail: 'Only when the National Weather Service issues one for your area.',
+  },
   {
     id: 'expiring',
     icon: 'clock-alert-outline',
@@ -36,6 +43,7 @@ type ChoiceId = 'on' | 'later';
 
 export default function NotificationsScreen() {
   const theme = useTheme();
+  const { draft } = useOnboardingDraft();
 
   // Local, not in the draft — the real answer lives in the phone's settings.
   const [choice, setChoice] = useState<ChoiceId | null>(null);
@@ -50,6 +58,12 @@ export default function NotificationsScreen() {
     const result = await requestNotificationPermission();
     if (result.granted) {
       setChoice('on');
+
+      // No zone if the ZIP lookup ran offline — the launch-time retry covers that. Not
+      // awaited: the choice shouldn't wait on the network.
+      if (draft.point) {
+        registerPushToken(draft.point.zoneId);
+      }
     } else {
       setChoice('later');
     }
@@ -138,7 +152,7 @@ export default function NotificationsScreen() {
             <ThemedText style={styles.title}>How we&apos;ll interrupt you</ThemedText>
 
             <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-              Only reminders about your supplies.
+              Just two kinds of notifications.
             </ThemedText>
           </View>
 

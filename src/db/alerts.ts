@@ -2,6 +2,7 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { stillRunning } from '@/lib/alert-rules';
 import type { AlertData } from '@/lib/nws';
 
 // One row ever — each answer replaces the last.
@@ -32,7 +33,8 @@ export async function saveAlerts(db: SQLiteDatabase, zoneId: string, alerts: Ale
   return saved;
 }
 
-// Null when nothing has been saved for this zone yet.
+// Null when nothing has been saved for this zone yet. Alerts that have ended since are
+// dropped here, so Home and Alerts can't show one that's over.
 export async function getCachedAlerts(db: SQLiteDatabase, zoneId: string) {
   const row = await db.getFirstAsync<{ alerts: string; checked_at: string }>(
     'SELECT alerts, checked_at FROM alerts_cache WHERE id = ? AND zone_id = ?',
@@ -45,7 +47,7 @@ export async function getCachedAlerts(db: SQLiteDatabase, zoneId: string) {
   }
 
   const cached: CachedAlerts = {
-    alerts: JSON.parse(row.alerts),
+    alerts: stillRunning(JSON.parse(row.alerts)),
     checkedAt: row.checked_at,
   };
   return cached;

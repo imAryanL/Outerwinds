@@ -38,7 +38,7 @@ import { useExportDocumentPdf } from "@/hooks/use-export-document-pdf";
 import { useTheme } from "@/hooks/use-theme";
 import { daysUntil, isExpiringSoon } from "@/lib/expiry";
 import { isPro } from "@/lib/pro";
-import { scheduleReminders } from "@/lib/reminders";
+import { scheduleRenewalReminders } from "@/lib/reminders";
 
 // 'September 3' — spelled out here, unlike the list row's shorter 'Sep 3'.
 function addedLabel(createdAt: string) {
@@ -63,16 +63,6 @@ function renewalLabel(renewsAt: string, daysLeft: number) {
     return "Renews today";
   }
   return `Renewal was due ${date}`;
-}
-
-// Both reminders name the document, e.g. "Flood insurance renews in 30 days".
-function scheduleRenewalReminders(id: number, title: string, renewsAt: string | null) {
-  return scheduleReminders("renewal", id, renewsAt, {
-    thirtyDayTitle: `${title} renews in 30 days`,
-    thirtyDayBody: "Renew it before it lapses.",
-    sevenDayTitle: `${title} renews in 7 days`,
-    sevenDayBody: "Renew it before it lapses.",
-  });
 }
 
 export default function DocumentDetailScreen() {

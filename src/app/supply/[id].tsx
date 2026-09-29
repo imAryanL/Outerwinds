@@ -21,7 +21,7 @@ import {
 } from "@/db/inventory";
 import { useTheme } from "@/hooks/use-theme";
 import { daysUntil, expiryLabel, isExpiringSoon } from "@/lib/expiry";
-import { scheduleReminders } from "@/lib/reminders";
+import { scheduleExpiryReminders } from "@/lib/reminders";
 import { iconFor } from "@/lib/supply-icons";
 
 // Only linked items have a target, and some have no unit (flashlights: just 3).
@@ -47,16 +47,6 @@ const EXPIRY_CHOICES = [
   { label: "6 months", months: 6 },
   { label: "1 year", months: 12 },
 ];
-
-// Same wording as before the move — only the scheduling code is shared now.
-function scheduleExpiryReminders(id: number, name: string, expiresAt: string | null) {
-  return scheduleReminders("expiry", id, expiresAt, {
-    thirtyDayTitle: `${name} is due for replacing in 30 days`,
-    thirtyDayBody: "Plan to restock or rotate it soon.",
-    sevenDayTitle: `${name} is due for replacing in 7 days`,
-    sevenDayBody: "Time to restock or rotate it.",
-  });
-}
 
 export default function SupplyDetailScreen() {
   const theme = useTheme();

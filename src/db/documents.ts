@@ -143,6 +143,13 @@ export async function setRenewalDate(db: SQLiteDatabase, id: number, renewsAt: s
 /**
  * Deletes the row and its photo files. A missing file is skipped, not a blocker.
  */
+// Every document with a renewal date, for re-queueing its reminders.
+export async function getRenewingDocuments(db: SQLiteDatabase) {
+  return db.getAllAsync<{ id: number; title: string; renews_at: string }>(
+    'SELECT id, title, renews_at FROM documents WHERE renews_at IS NOT NULL'
+  );
+}
+
 export async function deleteDocument(db: SQLiteDatabase, id: number) {
   const doc = await getDocument(db, id);
   if (doc === null) {

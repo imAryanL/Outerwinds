@@ -41,3 +41,6 @@ example
 # generated native folders
 /ios
 /android
+
+# written by the Deno editor extension
+deno.lock

@@ -8,7 +8,10 @@
     "scheme": "outerwinds",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.aryan.outerwinds"
+      "bundleIdentifier": "com.aryan.outerwinds",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.aryan.outerwinds",
@@ -36,6 +39,7 @@
       ],
       "expo-sqlite",
       "expo-sharing",
+      "expo-notifications",
       [
         "expo-image-picker",
         {
