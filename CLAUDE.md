@@ -35,7 +35,7 @@ Offline-first, cross-platform hurricane-prep app for Florida households. React N
 
 ## Design system (the build spec — see `landfall_design.md` in memory for full per-screen detail)
 - **Accent:** green monochrome (`#047857` — decided Jun 29 2026, see `landfall_design.md`). NOT generic blue.
-- **Look:** light background, white cards, single accent, uncluttered. Anti-FEMA, anti-emergency-siren.
+- **Look:** light background, white cards, single accent, uncluttered. Anti-FEMA, anti-emergency-siren. **Dark mode ships in v1** (Oct 1 2026): true black `#000000` background, neutral greys, the same emerald as light. Both palettes live in `src/constants/theme.ts`; buttons use `primaryButton`, check marks on the bright green use `onPrimary`, amber cards use `warningDisc` / `onWarningFill`.
 - **Scores:** circular rings (main score) + mini bars (sub-scores). Quantities/status in rounded **pills**; short rationale subtext under list items.
 - **Tone color:** **amber** for warnings (expiring supplies, storm watches). **Red is reserved ONLY for real storm warnings** — banned everywhere else. Red = real danger; a stale battery is not danger.
 - **Nav:** bottom tab bar, 4 tabs — **Home · Checklist · Inventory · Alerts** (Home first).

@@ -139,7 +139,7 @@ export default function SuppliesScreen() {
             onPress={() => router.push('/onboarding/notifications')}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: theme.primaryDeep },
+              { backgroundColor: theme.primaryButton },
               pressed && styles.buttonPressed,
             ]}>
             <ThemedText style={styles.buttonText}>Continue</ThemedText>

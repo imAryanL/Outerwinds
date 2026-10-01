@@ -412,7 +412,7 @@ export default function EditHouseholdScreen() {
             disabled={!canSave}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: canSave ? theme.primaryDeep : theme.border },
+              { backgroundColor: canSave ? theme.primaryButton : theme.border },
               pressed && styles.buttonPressed,
             ]}>
             <ThemedText style={[styles.buttonText, canSave ? null : { color: theme.textSecondary }]}>

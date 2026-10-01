@@ -162,7 +162,7 @@ export default function SummaryScreen() {
             disabled={saving}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: theme.primaryDeep },
+              { backgroundColor: theme.primaryButton },
               pressed && styles.buttonPressed,
             ]}>
             <ThemedText style={styles.buttonText}>Finish setup</ThemedText>

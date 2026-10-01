@@ -26,7 +26,7 @@ export function AlertCard({ severity, alert }: AlertCardProps) {
   const isWarning = severity === "warning";
   const cardBackground = isWarning ? theme.dangerBackground : theme.warningBackground;
   const badgeFill = isWarning ? theme.dangerFill : theme.warningFill;
-  const badgeTextColor = isWarning ? "#FFFFFF" : theme.text;
+  const badgeTextColor = isWarning ? "#FFFFFF" : theme.onWarningFill;
 
   // NWS names the event itself ('Hurricane Warning', 'Storm Surge Watch'), so the badge
   // is never wrong about which kind of alert this is.

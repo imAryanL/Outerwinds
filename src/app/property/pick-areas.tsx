@@ -231,7 +231,7 @@ export default function PickAreasScreen() {
                   accessibilityRole="button"
                   style={({ pressed }) => [
                     styles.addButton,
-                    { backgroundColor: theme.primaryDeep },
+                    { backgroundColor: theme.primaryButton },
                     pressed && styles.pressed,
                   ]}>
                   <ThemedText style={styles.addLabel}>Add</ThemedText>
@@ -248,7 +248,7 @@ export default function PickAreasScreen() {
             accessibilityRole="button"
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: canSave ? theme.primaryDeep : theme.border },
+              { backgroundColor: canSave ? theme.primaryButton : theme.border },
               pressed && styles.buttonPressed,
             ]}>
             <ThemedText

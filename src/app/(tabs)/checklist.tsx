@@ -32,7 +32,7 @@ export function Checkbox({ checked }: { checked: boolean }) {
         checked && { backgroundColor: theme.primary },
       ]}
     >
-      {checked && <ThemedText style={styles.checkmark}>✓</ThemedText>}
+      {checked && <ThemedText style={[styles.checkmark, { color: theme.onPrimary }]}>✓</ThemedText>}
     </View>
   );
 }
@@ -269,12 +269,12 @@ export default function ChecklistScreen() {
             accessibilityRole="button"
             style={({ pressed }) => [
               styles.addRow,
-              { borderColor: theme.border },
+              { borderColor: theme.primary, backgroundColor: theme.backgroundSelected },
               pressed && styles.rowPressed,
             ]}
           >
-            <MaterialCommunityIcons name="plus" size={20} color={theme.textSecondary} />
-            <ThemedText type="small" themeColor="textSecondary">
+            <MaterialCommunityIcons name="plus" size={22} color={theme.primaryDeep} />
+            <ThemedText themeColor="primaryDeep" style={styles.addRowText}>
               Add item
             </ThemedText>
           </Pressable>
@@ -291,7 +291,7 @@ export default function ChecklistScreen() {
               styles.addRow,
               styles.printRow,
               styles.printRowFilled,
-              { backgroundColor: theme.primaryDeep },
+              { backgroundColor: theme.primaryButton },
               pressed && styles.rowPressed,
             ]}
           >
@@ -395,6 +395,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 16,
     paddingVertical: 14,
+  },
+  addRowText: {
+    fontSize: 16,
+    fontWeight: "600",
   },
   // A gap before this one row, so it doesn't read as glued to Add item.
   printRow: {

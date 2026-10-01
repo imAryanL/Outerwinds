@@ -149,7 +149,7 @@ export default function AddItemScreen() {
             disabled={!canAdd}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: canAdd ? theme.primaryDeep : theme.border },
+              { backgroundColor: canAdd ? theme.primaryButton : theme.border },
               pressed && styles.buttonPressed,
             ]}>
             <ThemedText

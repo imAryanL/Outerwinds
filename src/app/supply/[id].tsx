@@ -218,7 +218,7 @@ export default function SupplyDetailScreen() {
                       hitSlop={6}
                       style={({ pressed }) => [
                         styles.bump,
-                        { backgroundColor: theme.primaryDeep, borderColor: theme.primaryDeep },
+                        { backgroundColor: theme.primaryButton, borderColor: theme.primaryButton },
                         pressed && styles.pressed,
                       ]}>
                       <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
@@ -270,10 +270,13 @@ export default function SupplyDetailScreen() {
                         accessibilityRole="button"
                         style={({ pressed }) => [
                           styles.chip,
-                          { borderColor: theme.border },
-                          pressed && styles.pressed,
+                          {
+                            borderColor: expiringSoon ? theme.warning : theme.primary,
+                            backgroundColor: expiringSoon ? theme.warningDisc : theme.backgroundSelected,
+                          },
+                          pressed && styles.chipPressed,
                         ]}>
-                        <ThemedText type="small">{choice.label}</ThemedText>
+                        <ThemedText type="small" style={styles.chipText}>{choice.label}</ThemedText>
                       </Pressable>
                     ))}
                   </View>
@@ -395,8 +398,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: Spacing.two,
   },
+  chipPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.96 }],
+  },
+  chipText: {
+    fontWeight: "600",
+  },
   chip: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderRadius: 16,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,

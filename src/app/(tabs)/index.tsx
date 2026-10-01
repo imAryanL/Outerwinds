@@ -316,7 +316,7 @@ export default function HomeScreen() {
           pressed && styles.pressed,
         ]}
       >
-        <View style={[styles.warningIconDisc, { backgroundColor: theme.backgroundElement }]}>
+        <View style={[styles.warningIconDisc, { backgroundColor: theme.warningDisc }]}>
           <MaterialCommunityIcons
             name={item.icon}
             size={20}

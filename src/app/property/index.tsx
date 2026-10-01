@@ -152,7 +152,7 @@ export default function PropertyRecordScreen() {
             accessibilityRole="button"
             style={({ pressed }) => [
               styles.addRow,
-              { backgroundColor: theme.primaryDeep },
+              { backgroundColor: theme.primaryButton },
               pressed && styles.pressed,
             ]}>
             <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />

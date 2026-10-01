@@ -189,7 +189,7 @@ export default function HouseholdScreen() {
             onPress={() => router.push('/onboarding/location')}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: theme.primaryDeep },
+              { backgroundColor: theme.primaryButton },
               pressed && styles.buttonPressed,
             ]}>
             <ThemedText style={styles.buttonText}>Continue</ThemedText>

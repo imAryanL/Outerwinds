@@ -143,7 +143,7 @@ export default function DocumentsScreen() {
             testID="add-document-button"
             style={({ pressed }) => [
               styles.addRow,
-              { backgroundColor: theme.primaryDeep },
+              { backgroundColor: theme.primaryButton },
               pressed && styles.rowPressed,
             ]}
           >

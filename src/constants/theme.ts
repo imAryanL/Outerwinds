@@ -1,6 +1,6 @@
 /**
  * Outerwinds colors. Named by meaning so we change them in one place.
- * v1 is light-only; `dark` is kept so the scaffold doesn't break.
+ * Light and dark are both designed; dark is true black for OLED battery.
  */
 
 import '@/global.css';
@@ -17,10 +17,14 @@ export const Colors = {
     backgroundSelected: '#E3F2EC', // pressed / selected (soft green)
     primary: '#10B981', // brand GREEN (lighter) — buttons, active tab, etc.
     primaryDeep: '#047857', // deeper green — icons/marks that need more weight than primary
+    primaryButton: '#047857', // fill for buttons that carry white text — dark in BOTH themes
+    onPrimary: '#FFFFFF', // check marks sitting on a `primary` fill
     primarySoft: '#A7DFC7', // soft green — subtle rings/accents, sits between backgroundSelected and primary
     warning: '#A16207', // amber warning text/icon (expiring items, low stock — never red)
     warningFill: '#FACC15', // solid yellow for badge fills — always pair with DARK text, never white
+    onWarningFill: '#0F172A', // the dark text that goes on warningFill, same in both themes
     warningBackground: '#FEF8DD', // amber warning card background (soft — calm, not alarming)
+    warningDisc: '#FFFFFF', // circle behind the icon on an amber card
     // RED = real storm WARNINGS only (conditions expected). Banned everywhere else in the app.
     // Note the flip from amber: a saturated red is a DARK fill, so its badge takes WHITE text
     // (white on #DC2626 = 4.8:1, passes AA), the opposite of the light yellow badge above.
@@ -35,22 +39,26 @@ export const Colors = {
   },
   dark: {
     text: '#F1F5F9',
-    textSecondary: '#94A3B8',
-    textTertiary: '#64748B', // in dark mode "lighter" means dimmer, so it steps down not up
-    background: '#0B1220',
-    backgroundElement: '#141C2B',
-    backgroundSelected: '#1A2B24',
-    primary: '#34D399',
-    primaryDeep: '#6EE7B7', // in dark mode "deeper" means brighter, so it still stands out
+    textSecondary: '#A3A3A3', // neutral greys, no blue cast
+    textTertiary: '#737373', // in dark mode "lighter" means dimmer, so it steps down not up
+    background: '#000000', // true black — saves OLED battery during an outage
+    backgroundElement: '#161616',
+    backgroundSelected: '#10231B',
+    primary: '#10B981', // same emerald as light, so the two modes read as one brand green
+    primaryDeep: '#10B981', // same emerald as `primary` so icons, rings and text all match
+    primaryButton: '#047857', // same as light: the deeper green that holds white button text
+    onPrimary: '#FFFFFF', // white check on the emerald, same as light
     primarySoft: '#2A5546', // soft green for rings, dialed down to sit on a dark background
-    warning: '#FBBF24',
+    warning: '#E2B65A', // a muted gold, not the bright yellow — calmer text and icons on the charcoal cards
     warningFill: '#FACC15', // same yellow in dark mode — the dark text on it stays readable
-    warningBackground: '#3F2D12',
+    onWarningFill: '#0F172A', // `text` turns white in dark, so the badge can't borrow it
+    warningBackground: '#453B10', // dark gold-yellow card; the old charcoal was #1E1A10 if this is ever too loud
+    warningDisc: '#5A4C16', // deeper gold circle behind the icon
     danger: '#F87171', // lighter red so it reads on a dark background
     dangerFill: '#DC2626', // same red in dark mode — the white text on it stays readable
-    dangerBackground: '#3F1D1D', // deep red card background, matching the amber one's darkness
-    offlineBanner: '#475569', // lighter slate so the neutral banner reads on the dark background
-    border: '#233043', // subtle hairline border around cards/sections
+    dangerBackground: '#2B1010', // deep red card background, matching the amber one's darkness
+    offlineBanner: '#3A3A3A', // lighter grey so the neutral banner reads on black
+    border: '#2A2A2A', // subtle hairline border around cards/sections
   },
 } as const;
 

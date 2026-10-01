@@ -64,7 +64,7 @@ export function StepperRow({ label, hint, value, onChange, min }: StepperRowProp
           hitSlop={6}
           style={({ pressed }) => [
             styles.bump,
-            { backgroundColor: theme.primaryDeep, borderColor: theme.primaryDeep },
+            { backgroundColor: theme.primaryButton, borderColor: theme.primaryButton },
             !canGoUp && styles.bumpDisabled,
             pressed && styles.pressed,
           ]}>

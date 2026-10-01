@@ -171,7 +171,7 @@ export default function AddDocumentScreen() {
 
         {isOn ? (
           <View style={[styles.radioFilled, { backgroundColor: theme.primary }]}>
-            <MaterialCommunityIcons name="check" size={13} color="#FFFFFF" />
+            <MaterialCommunityIcons name="check" size={13} color={theme.onPrimary} />
           </View>
         ) : (
           <View style={[styles.radioEmpty, { borderColor: theme.border }]} />
@@ -242,7 +242,7 @@ export default function AddDocumentScreen() {
                     accessibilityRole="button"
                     style={({ pressed }) => [
                       styles.photoSourceRow,
-                      { backgroundColor: theme.primaryDeep },
+                      { backgroundColor: theme.primaryButton },
                       pressed && styles.pressed,
                     ]}>
                     <MaterialCommunityIcons name="camera" size={22} color="#FFFFFF" />
@@ -254,7 +254,7 @@ export default function AddDocumentScreen() {
                     accessibilityRole="button"
                     style={({ pressed }) => [
                       styles.photoSourceRow,
-                      { backgroundColor: theme.primaryDeep },
+                      { backgroundColor: theme.primaryButton },
                       pressed && styles.pressed,
                     ]}>
                     <MaterialCommunityIcons name="image-multiple-outline" size={22} color="#FFFFFF" />
@@ -359,7 +359,7 @@ export default function AddDocumentScreen() {
               disabled={title.trim().length === 0 || saving}
               style={({ pressed }) => [
                 styles.saveButton,
-                { backgroundColor: theme.primaryDeep },
+                { backgroundColor: theme.primaryButton },
                 pressed && styles.buttonPressed,
               ]}>
               <ThemedText style={styles.saveButtonText}>Save</ThemedText>

@@ -89,8 +89,8 @@ export default function NotificationsScreen() {
           style={[
             styles.radio,
             {
-              borderColor: isOn ? theme.primaryDeep : theme.border,
-              backgroundColor: isOn ? theme.primaryDeep : 'transparent',
+              borderColor: isOn ? theme.primaryButton : theme.border,
+              backgroundColor: isOn ? theme.primaryButton : 'transparent',
             },
           ]}>
           {/* Dark fill, so the check has to flip to white. */}
@@ -171,7 +171,7 @@ export default function NotificationsScreen() {
             onPress={() => router.push('/onboarding/summary')}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: theme.primaryDeep },
+              { backgroundColor: theme.primaryButton },
               pressed && styles.buttonPressed,
             ]}>
             <ThemedText style={styles.buttonText}>Continue</ThemedText>

@@ -238,7 +238,7 @@ export default function LocationScreen() {
             disabled={!canContinue}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: canContinue ? theme.primaryDeep : theme.border },
+              { backgroundColor: canContinue ? theme.primaryButton : theme.border },
               pressed && styles.buttonPressed,
             ]}>
             <ThemedText

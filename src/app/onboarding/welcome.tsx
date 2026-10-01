@@ -55,7 +55,7 @@ export default function WelcomeScreen() {
             onPress={() => router.push('/onboarding/household')}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: theme.primaryDeep },
+              { backgroundColor: theme.primaryButton },
               pressed && styles.buttonPressed,
             ]}
           >

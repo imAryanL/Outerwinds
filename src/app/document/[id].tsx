@@ -236,7 +236,7 @@ export default function DocumentDetailScreen() {
             accessibilityLabel="Back"
             hitSlop={12}
             style={({ pressed }) => [styles.circleButton, pressed && styles.pressed]}>
-            <MaterialCommunityIcons name="chevron-left" size={20} color={theme.text} />
+            <MaterialCommunityIcons name="chevron-left" size={20} color="#0F172A" />
           </Pressable>
 
           {doc !== null && (
@@ -245,7 +245,7 @@ export default function DocumentDetailScreen() {
               accessibilityRole="button"
               accessibilityLabel="Share"
               style={({ pressed }) => [styles.circleButton, pressed && styles.pressed]}>
-              <MaterialCommunityIcons name="export-variant" size={19} color={theme.text} />
+              <MaterialCommunityIcons name="export-variant" size={19} color="#0F172A" />
             </Pressable>
           )}
         </View>
@@ -373,7 +373,7 @@ export default function DocumentDetailScreen() {
                   accessibilityRole="button"
                   style={({ pressed }) => [
                     styles.exportRow,
-                    { backgroundColor: theme.primaryDeep },
+                    { backgroundColor: theme.primaryButton },
                     pressed && styles.pressed,
                   ]}>
                   <MaterialCommunityIcons name="file-pdf-box" size={20} color="#FFFFFF" />
