@@ -5,17 +5,25 @@ import * as Notifications from "expo-notifications";
 import { router, useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useEffect, useState } from "react";
-import { AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
+import { Alert, AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Fonts, MaxContentWidth, Spacing } from "@/constants/theme";
 import { countLabel } from "@/lib/format";
+import { deleteVault } from "@/db/documents";
 import { getHousehold, type Household } from "@/db/household";
+import { deleteAllData } from "@/db/reset";
 import { usePrintPlan } from "@/hooks/use-print-plan";
 import { useTheme } from "@/hooks/use-theme";
-import { registerPushToken, requestNotificationPermission, rescheduleAllReminders } from "@/lib/notifications";
+import { success, tap, warn } from "@/lib/haptics";
+import {
+  registerPushToken,
+  requestNotificationPermission,
+  rescheduleAllReminders,
+  stopAllNotifications,
+} from "@/lib/notifications";
 import { isPro, setProForDevelopment } from "@/lib/pro";
 
 // The saved home_type is an id. Spelled out here rather than importing the onboarding
@@ -82,6 +90,7 @@ export default function SettingsScreen() {
       await readPermission();
 
       if (result.granted) {
+        success();
         rescheduleAllReminders(db);
       }
 
@@ -90,6 +99,7 @@ export default function SettingsScreen() {
         registerPushToken(household.nws_zone_id);
       }
     } else {
+      tap();
       await Linking.openSettings();
     }
   }
@@ -126,6 +136,63 @@ export default function SettingsScreen() {
     );
   }
 
+  // Alerts come off the server first: offline, nothing is deleted and the person can retry.
+  // The rows go before the photos, so a failure can never leave rows pointing at missing files.
+  async function deleteEverything() {
+    const stopped = await stopAllNotifications();
+    if (!stopped) {
+      Alert.alert(
+        "Couldn't delete your data",
+        "Connect to the internet and try again. This also removes your phone from storm alerts."
+      );
+      return;
+    }
+
+    await deleteAllData(db);
+    deleteVault();
+    success();
+    router.replace("/onboarding/welcome");
+  }
+
+  function confirmDelete() {
+    Alert.alert(
+      "Delete all your data?",
+      "This removes your household, checklist, supplies, documents and photos from this phone, and stops storm alerts. It can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete everything",
+          style: "destructive",
+          onPress: () => {
+            warn();
+            deleteEverything();
+          },
+        },
+      ]
+    );
+  }
+
+  // An app can't switch its own notifications off, so "On" needs a way out too.
+  if (isOn === true) {
+    actionRow = (
+      <View>
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        <Pressable
+          onPress={() => {
+            tap();
+            Linking.openSettings();
+          }}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}>
+          <ThemedText themeColor="primaryDeep" style={styles.actionText}>
+            Manage in iPhone Settings
+          </ThemedText>
+          <MaterialCommunityIcons name="open-in-new" size={20} color={theme.primaryDeep} />
+        </Pressable>
+      </View>
+    );
+  }
+
   // "2 adults, 1 kid" — zero counts are dropped rather than written as "0 kids".
   let householdCounts = "";
   let householdPlace = "";
@@ -157,7 +224,7 @@ export default function SettingsScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <Pressable
               onPress={leave}
@@ -180,7 +247,10 @@ export default function SettingsScreen() {
             </ThemedText>
 
             <Pressable
-              onPress={() => router.push("/edit-household")}
+              onPress={() => {
+                tap();
+                router.push("/edit-household");
+              }}
               accessibilityRole="button"
               style={({ pressed }) => [
                 styles.card,
@@ -191,7 +261,7 @@ export default function SettingsScreen() {
                 <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
                   <MaterialCommunityIcons
                     name="account-group-outline"
-                    size={20}
+                    size={28}
                     color={theme.primaryDeep}
                   />
                 </View>
@@ -221,7 +291,10 @@ export default function SettingsScreen() {
             </ThemedText>
 
             <Pressable
-              onPress={print}
+              onPress={() => {
+                tap();
+                print();
+              }}
               disabled={printing}
               accessibilityRole="button"
               style={({ pressed }) => [
@@ -233,7 +306,7 @@ export default function SettingsScreen() {
                 <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
                   <MaterialCommunityIcons
                     name="printer-outline"
-                    size={20}
+                    size={28}
                     color={theme.primaryDeep}
                   />
                 </View>
@@ -263,7 +336,7 @@ export default function SettingsScreen() {
             <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
               <View style={styles.row}>
                 <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
-                  <MaterialCommunityIcons name="bell-outline" size={20} color={theme.primaryDeep} />
+                  <MaterialCommunityIcons name="bell-outline" size={28} color={theme.primaryDeep} />
                 </View>
                 <View style={styles.rowText}>
                   <ThemedText style={styles.rowTitle}>Storm alerts and reminders</ThemedText>
@@ -285,7 +358,7 @@ export default function SettingsScreen() {
             <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
               <View style={styles.row}>
                 <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
-                  <MaterialCommunityIcons name="weather-hurricane" size={20} color={theme.primaryDeep} />
+                  <MaterialCommunityIcons name="weather-hurricane" size={28} color={theme.primaryDeep} />
                 </View>
                 <View style={styles.rowText}>
                   <ThemedText style={styles.rowTitle}>Alerts from the National Weather Service</ThemedText>
@@ -299,7 +372,7 @@ export default function SettingsScreen() {
 
               <View style={styles.row}>
                 <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
-                  <MaterialCommunityIcons name="shield-check-outline" size={20} color={theme.primaryDeep} />
+                  <MaterialCommunityIcons name="shield-check-outline" size={28} color={theme.primaryDeep} />
                 </View>
                 <View style={styles.rowText}>
                   <ThemedText style={styles.rowTitle}>Always follow official guidance</ThemedText>
@@ -309,6 +382,34 @@ export default function SettingsScreen() {
                 </View>
               </View>
             </View>
+          </View>
+
+          <View style={styles.section}>
+            <ThemedText themeColor="textSecondary" style={styles.sectionLabel}>
+              Your data
+            </ThemedText>
+
+            {/* Neutral colors on purpose: red is for real storm warnings only. */}
+            <Pressable
+              onPress={confirmDelete}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.card,
+                { backgroundColor: theme.backgroundElement },
+                pressed && styles.pressed,
+              ]}>
+              <View style={styles.row}>
+                <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
+                  <MaterialCommunityIcons name="trash-can-outline" size={28} color={theme.textSecondary} />
+                </View>
+                <View style={styles.rowText}>
+                  <ThemedText style={styles.rowTitle}>Delete all my data</ThemedText>
+                  <ThemedText themeColor="textSecondary" style={styles.rowDetail}>
+                    Start over from the beginning. This can&apos;t be undone.
+                  </ThemedText>
+                </View>
+              </View>
+            </Pressable>
           </View>
 
           {/* __DEV__ is false in any release build, so this section cannot ship. */}
@@ -323,7 +424,7 @@ export default function SettingsScreen() {
                   <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
                     <MaterialCommunityIcons
                       name="flask-outline"
-                      size={20}
+                      size={28}
                       color={theme.primaryDeep}
                     />
                   </View>
@@ -350,6 +451,9 @@ export default function SettingsScreen() {
     </ThemedView>
   );
 }
+
+// The dividers and the action row indent by this, so they line up with the text beside each disc.
+const ICON_DISC_SIZE = 44;
 
 const styles = StyleSheet.create({
   scrollContent: {
@@ -403,9 +507,9 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
   },
   iconDisc: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: ICON_DISC_SIZE,
+    height: ICON_DISC_SIZE,
+    borderRadius: ICON_DISC_SIZE / 2,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -426,7 +530,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    marginLeft: Spacing.three + 36 + Spacing.three,
+    marginLeft: Spacing.three + ICON_DISC_SIZE + Spacing.three,
   },
   actionRow: {
     flexDirection: "row",
@@ -434,7 +538,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.three,
     paddingRight: Spacing.three,
-    marginLeft: Spacing.three + 36 + Spacing.three,
+    marginLeft: Spacing.three + ICON_DISC_SIZE + Spacing.three,
   },
   actionText: {
     fontSize: 16,

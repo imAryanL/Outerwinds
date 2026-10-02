@@ -12,6 +12,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { tap } from '@/lib/haptics';
 
 export default function WelcomeScreen() {
   const theme = useTheme();
@@ -52,7 +53,10 @@ export default function WelcomeScreen() {
               filled block with white text on it, and white on the lighter green is too
               low-contrast to read comfortably. */}
           <Pressable
-            onPress={() => router.push('/onboarding/household')}
+            onPress={() => {
+              tap();
+              router.push('/onboarding/household');
+            }}
             style={({ pressed }) => [
               styles.button,
               { backgroundColor: theme.primaryButton },

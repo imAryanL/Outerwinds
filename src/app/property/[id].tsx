@@ -17,6 +17,7 @@ import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { vaultPhotoUri } from '@/db/documents';
 import { deleteArea, getArea, setAreaPhoto, updateAreaNotes, type AreaRow } from '@/db/property';
 import { useTheme } from '@/hooks/use-theme';
+import { success, tap, warn } from '@/lib/haptics';
 import { isPro } from '@/lib/pro';
 
 type Slot = 'before' | 'after';
@@ -147,6 +148,7 @@ export default function AreaScreen() {
     try {
       await setAreaPhoto(db, areaId, slot, asset.uri, takenAtFromExif(asset.exif));
       setArea(await getArea(db, areaId));
+      success();
     } catch {
       Alert.alert('Could not save the photo', 'Something went wrong. Please try again.');
     }
@@ -184,6 +186,7 @@ export default function AreaScreen() {
     if (area !== null) {
       const trimmed = value.trim();
       if (trimmed !== area.notes) {
+        success();
         await updateAreaNotes(db, areaId, trimmed);
         setArea({ ...area, notes: trimmed });
       }
@@ -199,6 +202,7 @@ export default function AreaScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
+          warn();
           await deleteArea(db, areaId);
           router.back();
         },
@@ -208,6 +212,7 @@ export default function AreaScreen() {
 
   // Adding and replacing are Pro. Looking at saved photos never is.
   async function handleAddPhoto(slot: Slot) {
+    tap();
     if (!(await isPro(db))) {
       Alert.alert('A Pro feature', 'Unlock Pro to add photos to your record.', [{ text: 'OK' }]);
       return;
@@ -235,7 +240,7 @@ export default function AreaScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <Pressable
               onPress={() => router.back()}

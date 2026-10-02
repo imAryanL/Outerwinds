@@ -26,6 +26,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { tap, tick } from '@/lib/haptics';
 import { fetchPointData, formatPlace } from '@/lib/nws';
 import { lookupZip } from '@/lib/zip-lookup';
 
@@ -126,7 +127,10 @@ export default function LocationScreen() {
     homeRows.push(
       <Pressable
         key={home.id}
-        onPress={() => updateDraft({ homeType: home.id })}
+        onPress={() => {
+          tick();
+          updateDraft({ homeType: home.id });
+        }}
         style={({ pressed }) => [
           styles.homeRow,
           {
@@ -172,6 +176,7 @@ export default function LocationScreen() {
         <OnboardingHeader step={CURRENT_STEP} />
 
         <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets>
@@ -234,7 +239,10 @@ export default function LocationScreen() {
           {/* Home type deliberately doesn't gate this — only the ZIP does. It's the one
               answer onboarding won't move past, since Alerts has nothing without it. */}
           <Pressable
-            onPress={() => router.push('/onboarding/supplies')}
+            onPress={() => {
+              tap();
+              router.push('/onboarding/supplies');
+            }}
             disabled={!canContinue}
             style={({ pressed }) => [
               styles.button,

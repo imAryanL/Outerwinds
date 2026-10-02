@@ -1,19 +1,22 @@
 // The calm "all clear" state. Frameless — cards are saved for real watches and warnings.
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { StyleSheet, View } from "react-native";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
 
 import { SeasonBar } from "@/components/alerts/season-bar";
 import { ThemedText } from "@/components/themed-text";
 import { Fonts, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { tap } from "@/lib/haptics";
 
 type CalmStateProps = {
   seasonTodayPercent: number;
   place: string | null;
+  // The NWS page for this location. Null hides the link.
+  noticeUrl: string | null;
 };
 
-export function CalmState({ seasonTodayPercent, place }: CalmStateProps) {
+export function CalmState({ seasonTodayPercent, place, noticeUrl }: CalmStateProps) {
   const theme = useTheme();
 
   return (
@@ -52,6 +55,24 @@ export function CalmState({ seasonTodayPercent, place }: CalmStateProps) {
         Outerwinds saves the newest update, so it&apos;s still here if you lose
         signal.
       </ThemedText>
+
+      {/* A saved "all clear" can be hours old, so this is how to check it at the source. */}
+      {noticeUrl !== null && (
+        <Pressable
+          onPress={() => {
+            tap();
+            Linking.openURL(noticeUrl);
+          }}
+          accessibilityRole="link"
+          accessibilityLabel="Check the National Weather Service forecast for your area"
+          hitSlop={8}
+          style={({ pressed }) => [styles.noticeLink, pressed && styles.noticeLinkPressed]}>
+          <ThemedText type="small" themeColor="primaryDeep" style={styles.noticeText}>
+            Check the NWS forecast for your area
+          </ThemedText>
+          <MaterialCommunityIcons name="open-in-new" size={15} color={theme.primaryDeep} />
+        </Pressable>
+      )}
 
       <SeasonBar todayPercent={seasonTodayPercent} />
 
@@ -92,6 +113,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 18,
     maxWidth: 280,
+  },
+  noticeLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.one,
+  },
+  noticeLinkPressed: {
+    opacity: 0.6,
+  },
+  noticeText: {
+    fontWeight: "600",
+    textDecorationLine: "underline",
   },
   nudge: {
     alignSelf: "stretch",

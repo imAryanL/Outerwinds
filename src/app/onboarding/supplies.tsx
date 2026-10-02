@@ -12,6 +12,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { itemApplies } from '@/lib/checklist-template';
+import { tap, tick } from '@/lib/haptics';
 
 const CURRENT_STEP = 3;
 
@@ -59,6 +60,7 @@ export default function SuppliesScreen() {
 
   // Multi-select here, unlike the single home type on screen 3.
   function toggleItem(id: string) {
+    tick();
     if (draft.owned.includes(id)) {
       updateDraft({ owned: draft.owned.filter((ownedId) => ownedId !== id) });
     } else {
@@ -118,7 +120,7 @@ export default function SuppliesScreen() {
       <SafeAreaView style={styles.safeArea}>
         <OnboardingHeader step={CURRENT_STEP} />
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.content}>
             <ThemedText themeColor="textSecondary" style={styles.stepLabel}>
               Step {CURRENT_STEP} of {TOTAL_STEPS}
@@ -136,7 +138,10 @@ export default function SuppliesScreen() {
 
         <View style={styles.footer}>
           <Pressable
-            onPress={() => router.push('/onboarding/notifications')}
+            onPress={() => {
+              tap();
+              router.push('/onboarding/notifications');
+            }}
             style={({ pressed }) => [
               styles.button,
               { backgroundColor: theme.primaryButton },

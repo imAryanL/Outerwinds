@@ -15,6 +15,7 @@ import { vaultPhotoUri } from '@/db/documents';
 import { getAreas, type AreaRow } from '@/db/property';
 import { useExportPropertyPdf } from '@/hooks/use-export-property-pdf';
 import { useTheme } from '@/hooks/use-theme';
+import { tap } from '@/lib/haptics';
 import { isPro } from '@/lib/pro';
 
 function photoStatus(area: AreaRow) {
@@ -49,6 +50,7 @@ export default function PropertyRecordScreen() {
 
   // Adding is the Pro part. Viewing what's already saved never is.
   async function handleAddAreas() {
+    tap();
     if (!(await isPro(db))) {
       Alert.alert('A Pro feature', 'Unlock Pro to add areas to your record.', [{ text: 'OK' }]);
       return;
@@ -95,7 +97,7 @@ export default function PropertyRecordScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <Pressable
               onPress={() => router.back()}
@@ -130,7 +132,10 @@ export default function PropertyRecordScreen() {
           {/* The photos only live on this phone, and the phone is what a storm can wreck. */}
           {rows.length > 0 && (
             <Pressable
-              onPress={exportPdf}
+              onPress={() => {
+                tap();
+                exportPdf();
+              }}
               disabled={exporting}
               accessibilityRole="button"
               style={({ pressed }) => [styles.exportRow, { borderColor: theme.border }, pressed && styles.pressed]}>

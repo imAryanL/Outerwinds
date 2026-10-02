@@ -2,11 +2,12 @@
 // (conditions expected). Both share this component; only the colors and wording change.
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { StyleSheet, View } from "react-native";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { Fonts, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { tap } from "@/lib/haptics";
 import type { AlertData } from "@/lib/nws";
 
 type AlertCardProps = {
@@ -16,9 +17,12 @@ type AlertCardProps = {
   // The alert itself, straight from NWS. Every word of fact on this card comes from
   // here — the app never writes a forecast of its own.
   alert: AlertData;
+
+  // The NWS page for this location, where the full official text lives. Null hides the link.
+  noticeUrl: string | null;
 };
 
-export function AlertCard({ severity, alert }: AlertCardProps) {
+export function AlertCard({ severity, alert, noticeUrl }: AlertCardProps) {
   const theme = useTheme();
 
   // Only the colors and label change between a watch and a warning. The light amber fill
@@ -66,6 +70,23 @@ export function AlertCard({ severity, alert }: AlertCardProps) {
         </ThemedText>
       )}
 
+      {/* The official text, one tap away. Underlined text in the card's own color, so it
+          reads on both the amber and the red fill. */}
+      {noticeUrl !== null && (
+        <Pressable
+          onPress={() => {
+            tap();
+            Linking.openURL(noticeUrl);
+          }}
+          accessibilityRole="link"
+          accessibilityLabel="Read the official notice from the National Weather Service"
+          hitSlop={8}
+          style={({ pressed }) => [styles.noticeLink, pressed && styles.noticeLinkPressed]}>
+          <ThemedText style={styles.noticeText}>Read the official NWS notice</ThemedText>
+          <MaterialCommunityIcons name="open-in-new" size={16} color={theme.text} />
+        </Pressable>
+      )}
+
       {/* The office that actually issued it. Not textSecondary: muted gray washes out
           on the card. */}
       <ThemedText style={styles.issued}>{alert.senderName}</ThemedText>
@@ -93,6 +114,20 @@ const styles = StyleSheet.create({
   stat: {
     fontWeight: "700", // bold instead of a color — scannable without looking like a link
     lineHeight: 22, // must match the paragraph or the line spacing jumps
+  },
+  noticeLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.one,
+  },
+  noticeLinkPressed: {
+    opacity: 0.6,
+  },
+  noticeText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "600",
+    textDecorationLine: "underline",
   },
   issued: {
     fontSize: 12,

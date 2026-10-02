@@ -26,6 +26,7 @@ import { Fonts, MaxContentWidth, Spacing } from "@/constants/theme";
 import { saveDocument } from "@/db/documents";
 import { useTheme } from "@/hooks/use-theme";
 import { DOCUMENT_CATEGORIES } from "@/lib/document-categories";
+import { success, tap, tick, warn } from "@/lib/haptics";
 
 type Step = "picker" | "confirm";
 
@@ -74,6 +75,7 @@ export default function AddDocumentScreen() {
   }
 
   async function handleTakePhoto() {
+    tap();
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       setPermissionNotice("Camera access is off — turn it on in Settings to take a photo.");
@@ -89,6 +91,7 @@ export default function AddDocumentScreen() {
   }
 
   async function handleChooseFromLibrary() {
+    tap();
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       setPermissionNotice("Photo access is off — turn it on in Settings to choose one.");
@@ -122,6 +125,7 @@ export default function AddDocumentScreen() {
 
   // Only offered with 2+ photos. With one left, Back already means "pick again."
   function handleRemovePhoto() {
+    warn();
     const remaining = [];
     for (let i = 0; i < photoUris.length; i++) {
       if (i !== page) {
@@ -143,6 +147,7 @@ export default function AddDocumentScreen() {
 
     setSaving(true);
     await saveDocument(db, title.trim(), category, photoUris, notes.trim());
+    success();
     leave();
   }
 
@@ -152,7 +157,10 @@ export default function AddDocumentScreen() {
     categoryRows.push(
       <Pressable
         key={option.id}
-        onPress={() => setCategory(option.label)}
+        onPress={() => {
+          tick();
+          setCategory(option.label);
+        }}
         accessibilityRole="radio"
         accessibilityState={{ selected: isOn }}
         style={({ pressed }) => [
@@ -202,7 +210,7 @@ export default function AddDocumentScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right", "bottom"]}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <Pressable
             onPress={handleBack}
             accessibilityRole="button"

@@ -9,6 +9,8 @@ import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from "react-nati
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
+import { tick } from "@/lib/haptics";
+
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const MAX_SCALE = 4;
 const DOUBLE_TAP_SCALE = 2.5;
@@ -154,6 +156,9 @@ function ZoomablePhoto({
   const doubleTapGesture = Gesture.Tap()
     .numberOfTaps(2)
     .onEnd(() => {
+      // The gesture runs on the UI thread, and haptics live on the JS one.
+      runOnJS(tick)();
+
       if (scale.value > 1) {
         resetZoom();
         return;

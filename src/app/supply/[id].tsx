@@ -21,6 +21,7 @@ import {
 } from "@/db/inventory";
 import { useTheme } from "@/hooks/use-theme";
 import { daysUntil, expiryLabel, isExpiringSoon } from "@/lib/expiry";
+import { tick, warn } from "@/lib/haptics";
 import { scheduleExpiryReminders } from "@/lib/reminders";
 import { iconFor } from "@/lib/supply-icons";
 
@@ -74,6 +75,7 @@ export default function SupplyDetailScreen() {
       return;
     }
 
+    tick();
     await setInventoryQuantity(db, item.id, item.quantity + delta);
     setItem(await getInventoryItem(db, itemId));
   }
@@ -84,6 +86,7 @@ export default function SupplyDetailScreen() {
       return;
     }
 
+    tick();
     await setChecklistItemDone(db, item.checklist_item_id, item.done !== 1);
     setItem(await getInventoryItem(db, itemId));
   }
@@ -93,6 +96,7 @@ export default function SupplyDetailScreen() {
       return;
     }
 
+    tick();
     const date = new Date();
     date.setMonth(date.getMonth() + months);
     const expiresAt = date.toISOString();
@@ -123,6 +127,7 @@ export default function SupplyDetailScreen() {
         text: "Remove",
         style: "destructive",
         onPress: async () => {
+          warn();
           // A null date just cancels both reminders.
           await scheduleExpiryReminders(item.id, item.name, null);
           await removeChecklistItem(db, checklistItemId);
@@ -142,7 +147,7 @@ export default function SupplyDetailScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <Pressable
               onPress={leave}

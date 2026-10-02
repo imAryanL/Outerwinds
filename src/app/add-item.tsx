@@ -21,6 +21,7 @@ import { Fonts, MaxContentWidth, Spacing } from "@/constants/theme";
 import { addCustomChecklistItem } from "@/db/checklist";
 import { useTheme } from "@/hooks/use-theme";
 import { CHECKLIST_CATEGORIES } from "@/lib/checklist-template";
+import { success, tick } from "@/lib/haptics";
 
 // The template's three sections plus a catch-all, so a custom item always has a section
 // the checklist already draws.
@@ -53,6 +54,7 @@ export default function AddItemScreen() {
 
     setSaving(true);
     await addCustomChecklistItem(db, name.trim(), category!);
+    success();
     leave();
   }
 
@@ -62,7 +64,10 @@ export default function AddItemScreen() {
     categoryRows.push(
       <Pressable
         key={option}
-        onPress={() => setCategory(option)}
+        onPress={() => {
+          tick();
+          setCategory(option);
+        }}
         accessibilityRole="radio"
         accessibilityState={{ selected: isOn }}
         style={({ pressed }) => [
@@ -88,6 +93,7 @@ export default function AddItemScreen() {
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right", "bottom"]}>
         <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets>

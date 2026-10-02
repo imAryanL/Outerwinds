@@ -13,6 +13,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { tap, tick } from '@/lib/haptics';
 import { computeTargets, PLANNING_DAYS } from '@/lib/targets';
 
 // Welcome isn't a step, so this is 1 of 5.
@@ -37,6 +38,7 @@ export default function HouseholdScreen() {
 
   // A new array each time — React only re-renders when it gets a different array.
   function toggleConcern(id: string) {
+    tick();
     if (draft.concerns.includes(id)) {
       updateDraft({ concerns: draft.concerns.filter((concernId) => concernId !== id) });
     } else {
@@ -82,6 +84,7 @@ export default function HouseholdScreen() {
 
         {/* Without keyboardShouldPersistTaps, the first tap while typing only closes the keyboard. */}
         <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets>
@@ -186,7 +189,10 @@ export default function HouseholdScreen() {
         {/* Outside the ScrollView, so it stays pinned to the bottom. */}
         <View style={styles.footer}>
           <Pressable
-            onPress={() => router.push('/onboarding/location')}
+            onPress={() => {
+              tap();
+              router.push('/onboarding/location');
+            }}
             style={({ pressed }) => [
               styles.button,
               { backgroundColor: theme.primaryButton },

@@ -14,6 +14,7 @@ import { OfflineAvailability } from "@/components/alerts/offline-availability";
 import { NextSteps } from "@/components/alerts/next-steps";
 import { OfflineBanner } from "@/components/alerts/offline-banner";
 import { StormTimeline } from "@/components/alerts/storm-timeline";
+import { TabTransition } from "@/components/tab-transition";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import {
@@ -62,6 +63,8 @@ export default function AlertsScreen() {
   // True when NWS didn't answer this time, so the result shown is an old one.
   const [isOffline, setIsOffline] = useState(false);
   const [place, setPlace] = useState<string | null>(null);
+  // From the saved coordinates, so it works even when the zone lookup hasn't landed.
+  const [noticeUrl, setNoticeUrl] = useState<string | null>(null);
   const [nextSteps, setNextSteps] = useState<ChecklistItemRow[]>([]);
 
   // Out here rather than inside the focus effect so the retry button can run it too.
@@ -71,6 +74,11 @@ export default function AlertsScreen() {
 
     const household = await getHousehold(db);
     setPlace(household?.place ?? null);
+    if (household?.latitude != null && household.longitude != null) {
+      setNoticeUrl(
+        `https://forecast.weather.gov/MapClick.php?lat=${household.latitude}&lon=${household.longitude}`,
+      );
+    }
 
     // Onboarded offline: the ZIP's coordinates were saved, so try the zone lookup again.
     let zoneId = household?.nws_zone_id ?? null;
@@ -121,54 +129,60 @@ export default function AlertsScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <AlertsHeader isOffline={isOffline} checkedAt={checkedAt} place={place} />
+      <TabTransition>
+        <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <AlertsHeader isOffline={isOffline} checkedAt={checkedAt} place={place} />
 
-          {/* Offline layers on any state — it's connectivity, not severity. */}
-          {isOffline && checkedAt !== null && <OfflineBanner cachedAt={checkedAt} />}
+            {/* Offline layers on any state — it's connectivity, not severity. */}
+            {isOffline && checkedAt !== null && <OfflineBanner cachedAt={checkedAt} />}
 
-          {/* NWS didn't answer and nothing's saved — say so instead of guessing calm. */}
-          {result === null && isOffline && (
-            <View style={styles.noAnswer}>
-              <View style={[styles.noAnswerIcon, { backgroundColor: theme.backgroundElement }]}>
-                <MaterialCommunityIcons
-                  name="cloud-off-outline"
-                  size={30}
-                  color={theme.textSecondary}
-                />
+            {/* NWS didn't answer and nothing's saved — say so instead of guessing calm. */}
+            {result === null && isOffline && (
+              <View style={styles.noAnswer}>
+                <View style={[styles.noAnswerIcon, { backgroundColor: theme.backgroundElement }]}>
+                  <MaterialCommunityIcons
+                    name="cloud-off-outline"
+                    size={30}
+                    color={theme.textSecondary}
+                  />
+                </View>
+                <ThemedText style={styles.noAnswerTitle}>Couldn&apos;t check for alerts</ThemedText>
+                <ThemedText themeColor="textSecondary" style={styles.noAnswerBody}>
+                  Outerwinds couldn&apos;t reach the National Weather Service, and there&apos;s no
+                  saved update yet. Open this tab again once you have signal.
+                </ThemedText>
               </View>
-              <ThemedText style={styles.noAnswerTitle}>Couldn&apos;t check for alerts</ThemedText>
-              <ThemedText themeColor="textSecondary" style={styles.noAnswerBody}>
-                Outerwinds couldn&apos;t reach the National Weather Service, and there&apos;s no
-                saved update yet. Open this tab again once you have signal.
-              </ThemedText>
-            </View>
-          )}
+            )}
 
-          {level === "calm" && (
-            <CalmState seasonTodayPercent={seasonPercent(new Date())} place={place} />
-          )}
+            {level === "calm" && (
+              <CalmState
+                seasonTodayPercent={seasonPercent(new Date())}
+                place={place}
+                noticeUrl={noticeUrl}
+              />
+            )}
 
-          {(level === "watch" || level === "warning") && alert !== null && (
-            <AlertCard severity={level} alert={alert} />
-          )}
+            {(level === "watch" || level === "warning") && alert !== null && (
+              <AlertCard severity={level} alert={alert} noticeUrl={noticeUrl} />
+            )}
 
-          {alert !== null && <StormTimeline steps={timeline} />}
+            {alert !== null && <StormTimeline steps={timeline} />}
 
-          {/* Hidden once everything's done. */}
-          {alert !== null && nextSteps.length > 0 && <NextSteps items={nextSteps} />}
+            {/* Hidden once everything's done. */}
+            {alert !== null && nextSteps.length > 0 && <NextSteps items={nextSteps} />}
 
-          {isOffline && (
-            <OfflineAvailability features={OFFLINE_FEATURES} onRetry={load} />
-          )}
+            {isOffline && (
+              <OfflineAvailability features={OFFLINE_FEATURES} onRetry={load} />
+            )}
 
-          {/* Outside both states — it shows with or without an alert. */}
-          <ThemedText themeColor="textSecondary" style={styles.disclaimer}>
-            Outerwinds helps you prepare. Always follow official emergency guidance.
-          </ThemedText>
-        </ScrollView>
-      </SafeAreaView>
+            {/* Outside both states — it shows with or without an alert. */}
+            <ThemedText themeColor="textSecondary" style={styles.disclaimer}>
+              Outerwinds helps you prepare. Always follow official emergency guidance.
+            </ThemedText>
+          </ScrollView>
+        </SafeAreaView>
+      </TabTransition>
     </ThemedView>
   );
 }

@@ -13,6 +13,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { addAreas, getAreas } from '@/db/property';
 import { useTheme } from '@/hooks/use-theme';
+import { success, tick } from '@/lib/haptics';
 import { AREA_SECTIONS } from '@/lib/property-areas';
 
 export default function PickAreasScreen() {
@@ -39,6 +40,7 @@ export default function PickAreasScreen() {
   }, [db]);
 
   function toggleArea(name: string) {
+    tick();
     if (picked.includes(name)) {
       setPicked(picked.filter((pickedName) => pickedName !== name));
     } else {
@@ -74,6 +76,7 @@ export default function PickAreasScreen() {
     if (!picked.includes(name)) {
       setPicked([...picked, name]);
     }
+    tick();
     setCustomName('');
   }
 
@@ -101,6 +104,7 @@ export default function PickAreasScreen() {
 
     try {
       await addAreas(db, names);
+      success();
       router.back();
     } catch {
       Alert.alert('Could not save', 'Something went wrong. Please try again.');
@@ -174,6 +178,7 @@ export default function PickAreasScreen() {
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets>

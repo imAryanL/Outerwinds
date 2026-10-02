@@ -13,6 +13,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { tap, tick } from '@/lib/haptics';
 import { registerPushToken, requestNotificationPermission } from '@/lib/notifications';
 
 const CURRENT_STEP = 4;
@@ -49,6 +50,7 @@ export default function NotificationsScreen() {
   const [choice, setChoice] = useState<ChoiceId | null>(null);
 
   async function handleChoice(id: ChoiceId) {
+    tick();
     if (id === 'later') {
       setChoice('later');
       return;
@@ -143,7 +145,7 @@ export default function NotificationsScreen() {
       <SafeAreaView style={styles.safeArea}>
         <OnboardingHeader step={CURRENT_STEP} />
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.content}>
             <ThemedText themeColor="textSecondary" style={styles.stepLabel}>
               Step {CURRENT_STEP} of {TOTAL_STEPS}
@@ -168,7 +170,10 @@ export default function NotificationsScreen() {
         <View style={styles.footer}>
           {/* Ungated — leaving both unpicked is a valid answer. */}
           <Pressable
-            onPress={() => router.push('/onboarding/summary')}
+            onPress={() => {
+              tap();
+              router.push('/onboarding/summary');
+            }}
             style={({ pressed }) => [
               styles.button,
               { backgroundColor: theme.primaryButton },

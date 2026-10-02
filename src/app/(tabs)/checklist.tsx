@@ -7,6 +7,7 @@ import { useCallback, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { TabTransition } from "@/components/tab-transition";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Fonts } from "@/constants/theme";
@@ -16,9 +17,11 @@ import {
   setChecklistItemDone,
   type ChecklistItemRow,
 } from "@/db/checklist";
+import { setInventoryQuantity } from "@/db/inventory";
 import { usePrintPlan } from "@/hooks/use-print-plan";
 import { useTheme } from "@/hooks/use-theme";
 import { groupByCategory } from "@/lib/checklist-template";
+import { tap, tick, warn } from "@/lib/haptics";
 
 // Exported — the supply detail screen reuses it for a binary item's done toggle.
 export function Checkbox({ checked }: { checked: boolean }) {
@@ -60,13 +63,16 @@ function ProgressBar({ percent }: { percent: number }) {
 }
 
 // Linked items open their detail screen. Custom items tick in place, and only they get onDelete.
+// The circle is its own tap, so a linked item can be finished without opening the detail screen.
 function ChecklistRow({
   item,
   onToggle,
+  onFillToTarget,
   onDelete,
 }: {
   item: ChecklistItemRow;
   onToggle: () => void;
+  onFillToTarget: () => void;
   onDelete?: () => void;
 }) {
   const theme = useTheme();
@@ -79,6 +85,23 @@ function ChecklistRow({
     if (isLinked) {
       router.push(`/supply/${item.inventory_id}`);
     } else {
+      tick();
+      onToggle();
+    }
+  }
+
+  // A count item's circle only fills it up; undoing goes through the detail screen, so a
+  // stray tap can't zero a real count.
+  function handleCirclePress() {
+    if (isCount && isLinked) {
+      if (item.done === 1) {
+        router.push(`/supply/${item.inventory_id}`);
+      } else {
+        tick();
+        onFillToTarget();
+      }
+    } else {
+      tick();
       onToggle();
     }
   }
@@ -96,7 +119,15 @@ function ChecklistRow({
       {...a11yProps}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
-      <Checkbox checked={item.done === 1} />
+      <Pressable
+        onPress={handleCirclePress}
+        hitSlop={8}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: item.done === 1 }}
+        accessibilityLabel={item.name}
+      >
+        <Checkbox checked={item.done === 1} />
+      </Pressable>
 
       <View style={styles.rowText}>
         <View style={styles.nameRow}>
@@ -196,6 +227,16 @@ export default function ChecklistScreen() {
     setChecklist(await getChecklist(db));
   }
 
+  // The done tick follows on its own: setInventoryQuantity ticks the item at its target.
+  async function fillToTarget(item: ChecklistItemRow) {
+    if (item.inventory_id === null || item.target_qty === null) {
+      return;
+    }
+
+    await setInventoryQuantity(db, item.inventory_id, item.target_qty);
+    setChecklist(await getChecklist(db));
+  }
+
   const { working: printing, print } = usePrintPlan();
 
   function confirmDelete(item: ChecklistItemRow) {
@@ -205,6 +246,7 @@ export default function ChecklistScreen() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          warn();
           await deleteCustomChecklistItem(db, item.id);
           setChecklist(await getChecklist(db));
         },
@@ -236,6 +278,7 @@ export default function ChecklistScreen() {
           key={item.id}
           item={item}
           onToggle={() => toggleItem(item)}
+          onFillToTarget={() => fillToTarget(item)}
           onDelete={onDelete}
         />,
       );
@@ -253,55 +296,63 @@ export default function ChecklistScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <ThemedText style={styles.headerTitle}>Prep checklist</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              Tailored to your household
-            </ThemedText>
-          </View>
+      <TabTransition>
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <View style={styles.header}>
+              <ThemedText style={styles.headerTitle}>Prep checklist</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Tailored to your household
+              </ThemedText>
+            </View>
 
-          {sections}
+            {sections}
 
-          <Pressable
-            onPress={() => router.push("/add-item")}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.addRow,
-              { borderColor: theme.primary, backgroundColor: theme.backgroundSelected },
-              pressed && styles.rowPressed,
-            ]}
-          >
-            <MaterialCommunityIcons name="plus" size={22} color={theme.primaryDeep} />
-            <ThemedText themeColor="primaryDeep" style={styles.addRowText}>
-              Add item
-            </ThemedText>
-          </Pressable>
+            <Pressable
+              onPress={() => {
+                tap();
+                router.push("/add-item");
+              }}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.addRow,
+                { borderColor: theme.primary, backgroundColor: theme.backgroundSelected },
+                pressed && styles.rowPressed,
+              ]}
+            >
+              <MaterialCommunityIcons name="plus" size={22} color={theme.primaryDeep} />
+              <ThemedText themeColor="primaryDeep" style={styles.addRowText}>
+                Add item
+              </ThemedText>
+            </Pressable>
 
-          {/* Sits under the list because that's the moment you want it — looking at
-              what's left and about to go shopping. Same row for everyone: Pro builds
-              the PDF, free sees the unlock prompt — this is the best place in the app
-              to learn Pro exists. */}
-          <Pressable
-            onPress={print}
-            disabled={printing}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.addRow,
-              styles.printRow,
-              styles.printRowFilled,
-              { backgroundColor: theme.primaryButton },
-              pressed && styles.rowPressed,
-            ]}
-          >
-            <MaterialCommunityIcons name="printer-outline" size={20} color="#FFFFFF" />
-            <ThemedText type="small" style={styles.printRowText}>
-              {printing ? "Making your plan…" : "Print my plan"}
-            </ThemedText>
-          </Pressable>
-        </ScrollView>
-      </SafeAreaView>
+            {/* Sits under the list because that's the moment you want it — looking at
+                what's left and about to go shopping. Same row for everyone: Pro builds
+                the PDF, free sees the unlock prompt — this is the best place in the app
+                to learn Pro exists. */}
+            <Pressable
+              onPress={() => {
+                tap();
+                print();
+              }}
+              disabled={printing}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.addRow,
+                styles.printRow,
+                styles.printRowFilled,
+                { backgroundColor: theme.primaryButton },
+                pressed && styles.rowPressed,
+              ]}
+            >
+              <MaterialCommunityIcons name="printer-outline" size={20} color="#FFFFFF" />
+              <ThemedText type="small" style={styles.printRowText}>
+                {printing ? "Making your plan…" : "Print my plan"}
+              </ThemedText>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
+      </TabTransition>
     </ThemedView>
   );
 }

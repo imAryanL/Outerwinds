@@ -9,6 +9,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ReadinessRing } from '@/components/readiness-ring';
+import { TabTransition } from '@/components/tab-transition';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
@@ -30,6 +31,7 @@ import { isFreshEnoughForCalm, levelFor, topAlert, type AlertLevel } from '@/lib
 import { DOCUMENT_CATEGORIES } from '@/lib/document-categories';
 import { daysUntil, expiryLabel, isExpiringSoon } from '@/lib/expiry';
 import { type AlertData } from '@/lib/nws';
+import { tap } from '@/lib/haptics';
 import { isPro } from '@/lib/pro';
 import { iconFor, type IconName } from '@/lib/supply-icons';
 
@@ -238,6 +240,7 @@ export default function HomeScreen() {
 
   // Pro gates starting a record, never opening one that already has areas.
   async function openPropertyRecord() {
+    tap();
     const areas = await getAreas(db);
     if (areas.length === 0 && !(await isPro(db))) {
       Alert.alert(
@@ -344,108 +347,89 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            {/* Settings lives on this row rather than taking a 5th tab. */}
-            <View style={styles.titleRow}>
-              <ThemedText style={styles.greeting}>{buildGreeting(household?.name ?? null)}</ThemedText>
-              <Pressable
-                onPress={() => router.push('/settings')}
-                accessibilityRole="button"
-                accessibilityLabel="Settings"
-                style={({ pressed }) => [
-                  styles.settingsButton,
-                  { backgroundColor: theme.backgroundSelected },
-                  pressed && styles.pressed,
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name="cog"
-                  size={27}
-                  color={theme.primaryDeep}
-                />
-              </Pressable>
-            </View>
+      <TabTransition>
+        <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <View style={styles.header}>
+              {/* Settings lives on this row rather than taking a 5th tab. */}
+              <View style={styles.titleRow}>
+                <ThemedText style={styles.greeting}>{buildGreeting(household?.name ?? null)}</ThemedText>
+                <Pressable
+                  onPress={() => {
+                    tap();
+                    router.push('/settings');
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Settings"
+                  style={({ pressed }) => [
+                    styles.settingsButton,
+                    { backgroundColor: theme.backgroundSelected },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name="cog"
+                    size={27}
+                    color={theme.primaryDeep}
+                  />
+                </Pressable>
+              </View>
 
-            {/* Fact first, reassurance last. */}
-            <ThemedText themeColor="textSecondary" style={styles.summary}>
-              {buildGreetingSummary(stormLevel, stormAlert)}
-            </ThemedText>
-          </View>
-
-          {/* Score and bars share one card: apart they said the same thing twice. */}
-          <ThemedView type="backgroundElement" style={styles.card}>
-            <View style={styles.readinessRow}>
-              <ReadinessRing score={readinessScore} size={124} width={11} />
-
-              <View style={styles.breakdownColumn}>{breakdownBars}</View>
-            </View>
-
-            {/* A score with no explanation reads as arbitrary. */}
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <ThemedText themeColor="textSecondary" style={styles.cardFootnote}>
-              The average of these four bars.
-            </ThemedText>
-          </ThemedView>
-
-          {/* Hidden when neither card has anything to say. */}
-          {attentionItems.length > 0 && (
-          <View style={styles.needsAttentionSection}>
-            <View style={styles.sectionHeaderRow}>
-              <ThemedText type="smallBold">Needs attention</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {attentionLabel}
+              {/* Fact first, reassurance last. */}
+              <ThemedText themeColor="textSecondary" style={styles.summary}>
+                {buildGreetingSummary(stormLevel, stormAlert)}
               </ThemedText>
             </View>
 
-            {attentionCards}
-          </View>
-          )}
+            {/* Score and bars share one card: apart they said the same thing twice. */}
+            <ThemedView type="backgroundElement" style={styles.card}>
+              <View style={styles.readinessRow}>
+                <ReadinessRing score={readinessScore} size={124} width={11} />
 
-          {/* Points into Alerts. Hidden until Alerts has saved an answer, and when a saved all-clear is stale. */}
-          {showStormRow && (
-          <ThemedView type="backgroundElement" style={styles.stormRow}>
-            <View style={[styles.stormDot, { backgroundColor: stormDotColor }]} />
+                <View style={styles.breakdownColumn}>{breakdownBars}</View>
+              </View>
 
-            <View style={styles.stormText}>
-              <ThemedText type="smallBold">{stormLabel}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {buildStormDetail(household?.place ?? null)}
+              {/* A score with no explanation reads as arbitrary. */}
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <ThemedText themeColor="textSecondary" style={styles.cardFootnote}>
+                The average of these four bars.
               </ThemedText>
+            </ThemedView>
+
+            {/* Hidden when neither card has anything to say. */}
+            {attentionItems.length > 0 && (
+            <View style={styles.needsAttentionSection}>
+              <View style={styles.sectionHeaderRow}>
+                <ThemedText type="smallBold">Needs attention</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {attentionLabel}
+                </ThemedText>
+              </View>
+
+              {attentionCards}
             </View>
+            )}
 
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={22}
-              color={theme.textSecondary}
-            />
-          </ThemedView>
-          )}
-
-          {/* Last on purpose: a once-a-season job, not something to act on today. */}
-          <View style={styles.propertySection}>
-            <View style={styles.sectionHeaderRow}>
-              <ThemedText type="smallBold">Storm property record</ThemedText>
-            </View>
-
+            {/* Points into Alerts. Hidden until Alerts has saved an answer, and when a saved all-clear is stale. */}
+            {showStormRow && (
             <Pressable
-              onPress={openPropertyRecord}
+              onPress={() => {
+                tap();
+                router.push('/alerts');
+              }}
               accessibilityRole="button"
               style={({ pressed }) => [
-                styles.propertyRow,
+                styles.stormRow,
                 { backgroundColor: theme.backgroundElement },
                 pressed && styles.pressed,
               ]}
             >
-              <View style={[styles.propertyIconDisc, { backgroundColor: theme.backgroundSelected }]}>
-                <MaterialCommunityIcons name="home-outline" size={20} color={theme.primaryDeep} />
-              </View>
+              <View style={[styles.stormDot, { backgroundColor: stormDotColor }]} />
 
-              <View style={styles.propertyText}>
-                <ThemedText type="smallBold">Photograph your home</ThemedText>
+              <View style={styles.stormText}>
+                <ThemedText type="smallBold">{stormLabel}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
-                  Dated before and after photos
+                  {buildStormDetail(household?.place ?? null)}
                 </ThemedText>
               </View>
 
@@ -455,9 +439,44 @@ export default function HomeScreen() {
                 color={theme.textSecondary}
               />
             </Pressable>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+            )}
+
+            {/* Last on purpose: a once-a-season job, not something to act on today. */}
+            <View style={styles.propertySection}>
+              <View style={styles.sectionHeaderRow}>
+                <ThemedText type="smallBold">Storm property record</ThemedText>
+              </View>
+
+              <Pressable
+                onPress={openPropertyRecord}
+                accessibilityRole="button"
+                style={({ pressed }) => [
+                  styles.propertyRow,
+                  { backgroundColor: theme.backgroundElement },
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View style={[styles.propertyIconDisc, { backgroundColor: theme.backgroundSelected }]}>
+                  <MaterialCommunityIcons name="home-outline" size={20} color={theme.primaryDeep} />
+                </View>
+
+                <View style={styles.propertyText}>
+                  <ThemedText type="smallBold">Photograph your home</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    Dated before and after photos
+                  </ThemedText>
+                </View>
+
+                <MaterialCommunityIcons
+                  name="chevron-right"
+                  size={22}
+                  color={theme.textSecondary}
+                />
+              </Pressable>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </TabTransition>
     </ThemedView>
   );
 }

@@ -8,12 +8,14 @@ import { useCallback, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { TabTransition } from "@/components/tab-transition";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Fonts } from "@/constants/theme";
 import { getDocuments, type DocumentRow } from "@/db/documents";
 import { useTheme } from "@/hooks/use-theme";
 import { DOCUMENT_CATEGORIES, iconForCategory } from "@/lib/document-categories";
+import { tap } from "@/lib/haptics";
 import { FREE_DOCUMENT_LIMIT, isPro } from "@/lib/pro";
 
 // 'Added Sep 3' — same short format everywhere a document shows its date.
@@ -61,6 +63,7 @@ export default function DocumentsScreen() {
   // Checked here, before the picker flow starts, so a free user never fills out a
   // whole add flow only to be blocked on save.
   async function handleAddDocument() {
+    tap();
     const count = documents?.length ?? 0;
     if (count >= FREE_DOCUMENT_LIMIT && !(await isPro(db))) {
       Alert.alert(
@@ -126,32 +129,34 @@ export default function DocumentsScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <ThemedText style={styles.headerTitle}>Documents</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              Stored on your phone, not the cloud
-            </ThemedText>
-          </View>
+      <TabTransition>
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <View style={styles.header}>
+              <ThemedText style={styles.headerTitle}>Documents</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Stored on your phone, not the cloud
+              </ThemedText>
+            </View>
 
-          {sections}
+            {sections}
 
-          <Pressable
-            onPress={handleAddDocument}
-            accessibilityRole="button"
-            testID="add-document-button"
-            style={({ pressed }) => [
-              styles.addRow,
-              { backgroundColor: theme.primaryButton },
-              pressed && styles.rowPressed,
-            ]}
-          >
-            <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
-            <ThemedText style={styles.addLabel}>Add document</ThemedText>
-          </Pressable>
-        </ScrollView>
-      </SafeAreaView>
+            <Pressable
+              onPress={handleAddDocument}
+              accessibilityRole="button"
+              testID="add-document-button"
+              style={({ pressed }) => [
+                styles.addRow,
+                { backgroundColor: theme.primaryButton },
+                pressed && styles.rowPressed,
+              ]}
+            >
+              <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
+              <ThemedText style={styles.addLabel}>Add document</ThemedText>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
+      </TabTransition>
     </ThemedView>
   );
 }

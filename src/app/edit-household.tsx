@@ -24,6 +24,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { addNewlyApplicableItems, updateTargets } from '@/db/checklist';
 import { getHousehold, updateHousehold } from '@/db/household';
+import { success, tick } from '@/lib/haptics';
 import { syncPushRegistration } from '@/lib/notifications';
 import { addSuppliesFor } from '@/db/inventory';
 import { fetchPointData, formatPlace, type PointData } from '@/lib/nws';
@@ -150,6 +151,7 @@ export default function EditHouseholdScreen() {
 
   // A new array each time — React only re-renders when it gets a different one.
   function toggleConcern(id: string) {
+    tick();
     if (concerns.includes(id)) {
       setConcerns(concerns.filter((concernId) => concernId !== id));
     } else {
@@ -188,6 +190,7 @@ export default function EditHouseholdScreen() {
     const added = await addNewlyApplicableItems(db, before, values);
     await addSuppliesFor(db, added);
 
+    success();
     leave();
   }
 
@@ -240,7 +243,10 @@ export default function EditHouseholdScreen() {
     homeRows.push(
       <Pressable
         key={home.id}
-        onPress={() => setHomeType(home.id)}
+        onPress={() => {
+          tick();
+          setHomeType(home.id);
+        }}
         accessibilityRole="button"
         accessibilityState={{ selected: isOn }}
         style={({ pressed }) => [
@@ -290,7 +296,7 @@ export default function EditHouseholdScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
             <Pressable
               onPress={leave}

@@ -37,6 +37,7 @@ import {
 import { useExportDocumentPdf } from "@/hooks/use-export-document-pdf";
 import { useTheme } from "@/hooks/use-theme";
 import { daysUntil, isExpiringSoon } from "@/lib/expiry";
+import { success, tap, warn } from "@/lib/haptics";
 import { isPro } from "@/lib/pro";
 import { scheduleRenewalReminders } from "@/lib/reminders";
 
@@ -116,6 +117,8 @@ export default function DocumentDetailScreen() {
       return;
     }
 
+    tap();
+
     const photos = getPhotoUris(doc);
     if (!(await Sharing.isAvailableAsync())) {
       return;
@@ -156,6 +159,7 @@ export default function DocumentDetailScreen() {
     if (doc !== null) {
       const trimmed = value.trim();
       if (trimmed !== doc.notes) {
+        success();
         await updateDocumentNotes(db, documentId, trimmed);
         setDoc({ ...doc, notes: trimmed });
       }
@@ -180,6 +184,7 @@ export default function DocumentDetailScreen() {
       renewal.setHours(9, 0, 0, 0);
       const renewsAt = renewal.toISOString();
 
+      success();
       await setRenewalDate(db, documentId, renewsAt);
       await scheduleRenewalReminders(documentId, doc.title, renewsAt);
       setDoc({ ...doc, renews_at: renewsAt });
@@ -189,6 +194,7 @@ export default function DocumentDetailScreen() {
 
   async function removeRenewal() {
     if (doc !== null) {
+      tap();
       await setRenewalDate(db, documentId, null);
       await scheduleRenewalReminders(documentId, doc.title, null);
       setDoc({ ...doc, renews_at: null });
@@ -204,6 +210,7 @@ export default function DocumentDetailScreen() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          warn();
           await deleteDocument(db, documentId);
           leave();
         },
@@ -252,7 +259,7 @@ export default function DocumentDetailScreen() {
       </SafeAreaView>
 
       <SafeAreaView style={{ flex: 1 }} edges={["left", "right", "bottom"]}>
-        <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false} keyboardShouldPersistTaps="handled">
           {doc !== null && (
             <>
               <View
@@ -368,7 +375,10 @@ export default function DocumentDetailScreen() {
 
                 {/* Every photo in one file, unlike Share, which sends only the one on screen. */}
                 <Pressable
-                  onPress={exportPdf}
+                  onPress={() => {
+                    tap();
+                    exportPdf();
+                  }}
                   disabled={exporting}
                   accessibilityRole="button"
                   style={({ pressed }) => [

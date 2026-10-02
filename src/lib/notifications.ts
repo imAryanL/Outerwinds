@@ -85,6 +85,22 @@ export async function syncPushRegistration(db: SQLiteDatabase) {
   await registerPushToken(permission.granted ? household.nws_zone_id : null);
 }
 
+// For "Delete all my data". False means the server couldn't be reached, and nothing was cancelled.
+export async function stopAllNotifications(): Promise<boolean> {
+  const permission = await Notifications.getPermissionsAsync();
+
+  // Only a phone that allowed notifications can be on the server's list.
+  if (permission.granted) {
+    const removed = await registerPushToken(null);
+    if (!removed) {
+      return false;
+    }
+  }
+
+  await Notifications.cancelAllScheduledNotificationsAsync();
+  return true;
+}
+
 // Reminders are only queued when a date is saved, and skipped without permission. So dates
 // saved before notifications were turned on never got theirs. Fixed ids make re-queueing
 // everything safe to repeat.

@@ -20,6 +20,7 @@ import { saveHousehold } from '@/db/household';
 import { saveInventory } from '@/db/inventory';
 import { useTheme } from '@/hooks/use-theme';
 import { itemApplies } from '@/lib/checklist-template';
+import { success } from '@/lib/haptics';
 import { formatPlace } from '@/lib/nws';
 
 const CURRENT_STEP = 5;
@@ -49,6 +50,8 @@ export default function SummaryScreen() {
 
     // Screen 4's supplies, linked to the checklist items they stock.
     await saveInventory(db, draft);
+
+    success();
 
     // replace, not push — onboarding is done, so the back gesture must not return into it.
     router.replace('/(tabs)');
@@ -134,7 +137,7 @@ export default function SummaryScreen() {
       <SafeAreaView style={styles.safeArea}>
         <OnboardingHeader step={CURRENT_STEP} />
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.content}>
             <ThemedText themeColor="textSecondary" style={styles.stepLabel}>
               Step {CURRENT_STEP} of {TOTAL_STEPS}

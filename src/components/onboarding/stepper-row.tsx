@@ -9,6 +9,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { tick } from '@/lib/haptics';
 
 // Nobody has a hundred people in the house, and an absurd number would only produce an
 // absurd shopping list. The cap keeps the targets believable.
@@ -41,7 +42,10 @@ export function StepperRow({ label, hint, value, onChange, min }: StepperRowProp
 
       <View style={styles.stepper}>
         <Pressable
-          onPress={() => onChange(value - 1)}
+          onPress={() => {
+            tick();
+            onChange(value - 1);
+          }}
           disabled={!canGoDown}
           // The circle is drawn at 36 but hitSlop stretches the touch area 6px in every
           // direction, so the real target is 48 — above Apple's 44pt minimum without
@@ -59,7 +63,10 @@ export function StepperRow({ label, hint, value, onChange, min }: StepperRowProp
         <ThemedText style={styles.count}>{value}</ThemedText>
 
         <Pressable
-          onPress={() => onChange(value + 1)}
+          onPress={() => {
+            tick();
+            onChange(value + 1);
+          }}
           disabled={!canGoUp}
           hitSlop={6}
           style={({ pressed }) => [

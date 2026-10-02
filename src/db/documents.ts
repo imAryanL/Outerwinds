@@ -52,6 +52,14 @@ export async function copyIntoVault(sourceUri: string, index: number) {
   return destFile.name;
 }
 
+// Deletes every photo at once: documents and property photos all live in this one folder.
+export function deleteVault() {
+  const vaultDir = new Directory(Paths.document, 'vault');
+  if (vaultDir.exists) {
+    vaultDir.delete();
+  }
+}
+
 /**
  * Copies every photo into the vault, then writes one row pointing at the copies.
  */
