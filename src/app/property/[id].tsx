@@ -214,7 +214,7 @@ export default function AreaScreen() {
   async function handleAddPhoto(slot: Slot) {
     tap();
     if (!(await isPro(db))) {
-      Alert.alert('A Pro feature', 'Unlock Pro to add photos to your record.', [{ text: 'OK' }]);
+      router.push('/paywall');
       return;
     }
 

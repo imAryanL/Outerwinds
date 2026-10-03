@@ -1,6 +1,7 @@
 // The Export-as-PDF action on a saved document. Owns the Pro check, the work, and
 // what to say when either fails — same shape as use-print-plan.ts.
 
+import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
 import { Alert } from 'react-native';
@@ -21,12 +22,7 @@ export function useExportDocumentPdf(documentId: number) {
     }
 
     if (!(await isPro(db))) {
-      // Stands in for the real paywall until RevenueCat exists.
-      Alert.alert(
-        'A Pro feature',
-        'Unlock Pro to export this document as a single PDF.',
-        [{ text: 'OK' }]
-      );
+      router.push('/paywall');
       return;
     }
 

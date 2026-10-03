@@ -1,29 +1,34 @@
-// The one place the app asks "is Pro unlocked?". Every paid feature reads this and
-// nothing else, so swapping the dev switch for RevenueCat later is a change to this
-// file alone.
-//
-// Until RevenueCat exists, the answer is a flag in the settings table that a
-// development-only row in Settings can flip.
+// The one place the app asks "is Pro unlocked?". Every paid feature reads this and nothing else.
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { getSetting, setSetting } from '@/db/settings';
+import { hasProEntitlement } from '@/lib/purchases';
 
-const PRO_KEY = 'pro_unlocked';
+// The development switch in Settings.
+const DEV_KEY = 'pro_unlocked';
+// RevenueCat's last answer, kept for when it can't be reached.
+const LAST_KNOWN_KEY = 'pro_last_known';
 
-// Free is the safe answer: if we can't tell, the user isn't charged for something
-// they didn't buy. ⚠️ This gates ADDING only — never opening what's already saved.
+// ⚠️ This gates ADDING only — never opening what's already saved.
 export async function isPro(db: SQLiteDatabase): Promise<boolean> {
+  if (__DEV__ && (await getSetting(db, DEV_KEY)) === 'true') {
+    return true;
+  }
+
   try {
-    return (await getSetting(db, PRO_KEY)) === 'true';
+    const unlocked = await hasProEntitlement();
+    await setSetting(db, LAST_KNOWN_KEY, unlocked ? 'true' : 'false');
+    return unlocked;
   } catch {
-    return false;
+    // RevenueCat couldn't answer, so a paying user keeps Pro and everyone else stays free.
+    return (await getSetting(db, LAST_KNOWN_KEY)) === 'true';
   }
 }
 
-// Development only. The real unlock will come from a purchase, not a toggle.
+// Development only. The real unlock comes from a purchase, not this toggle.
 export async function setProForDevelopment(db: SQLiteDatabase, unlocked: boolean) {
-  await setSetting(db, PRO_KEY, unlocked ? 'true' : 'false');
+  await setSetting(db, DEV_KEY, unlocked ? 'true' : 'false');
 }
 
 // How many documents the free tier holds. Exported so the vault and the paywall copy

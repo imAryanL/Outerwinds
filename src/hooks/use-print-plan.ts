@@ -1,6 +1,7 @@
 // The Print-my-plan action, shared by the checklist and Settings. Each screen draws its
 // own row; this owns the Pro check, the work, and what to say when either fails.
 
+import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
 import { Alert } from 'react-native';
@@ -21,12 +22,7 @@ export function usePrintPlan() {
     }
 
     if (!(await isPro(db))) {
-      // Stands in for the real paywall until RevenueCat exists.
-      Alert.alert(
-        'A Pro feature',
-        'Unlock Pro to print your plan, with what you still need and what is due for replacing.',
-        [{ text: 'OK' }]
-      );
+      router.push('/paywall');
       return;
     }
 

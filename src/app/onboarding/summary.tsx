@@ -22,6 +22,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { itemApplies } from '@/lib/checklist-template';
 import { success } from '@/lib/haptics';
 import { formatPlace } from '@/lib/nws';
+import { isPro } from '@/lib/pro';
 
 const CURRENT_STEP = 5;
 
@@ -53,8 +54,16 @@ export default function SummaryScreen() {
 
     success();
 
+    // Asked before leaving, so the answer is ready the moment Home appears.
+    const alreadyPro = await isPro(db);
+
     // replace, not push — onboarding is done, so the back gesture must not return into it.
     router.replace('/(tabs)');
+
+    // Shown once, here, because onboarding only ever runs once. Pro owners skip it.
+    if (!alreadyPro) {
+      router.push('/paywall');
+    }
   }
 
   // The name is optional on screen 2, so the greeting drops it rather than leaving a gap.

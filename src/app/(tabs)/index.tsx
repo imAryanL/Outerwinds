@@ -5,7 +5,7 @@ import * as Notifications from 'expo-notifications';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ReadinessRing } from '@/components/readiness-ring';
@@ -210,6 +210,7 @@ export default function HomeScreen() {
 
   // Lives in iOS, not the database, so it gets re-read every time the tab is focused.
   const [notificationsGranted, setNotificationsGranted] = useState(false);
+  const [pro, setPro] = useState(false);
 
   // Tab screens stay mounted, so a plain useEffect would only read once at launch.
   useFocusEffect(
@@ -225,6 +226,7 @@ export default function HomeScreen() {
         }
 
         setProgress(await getChecklistProgress(db));
+        setPro(await isPro(db));
         setCoverage(await getSupplyCoverage(db));
         setLowestSupply(await getLowestSupply(db));
         setSoonestExpiring(await getSoonestExpiring(db));
@@ -243,11 +245,7 @@ export default function HomeScreen() {
     tap();
     const areas = await getAreas(db);
     if (areas.length === 0 && !(await isPro(db))) {
-      Alert.alert(
-        'A Pro feature',
-        'Unlock Pro to keep a dated before-and-after record of your home.',
-        [{ text: 'OK' }]
-      );
+      router.push('/paywall');
       return;
     }
     router.push('/property');
@@ -354,6 +352,13 @@ export default function HomeScreen() {
               {/* Settings lives on this row rather than taking a 5th tab. */}
               <View style={styles.titleRow}>
                 <ThemedText style={styles.greeting}>{buildGreeting(household?.name ?? null)}</ThemedText>
+                {pro && (
+                  <View style={[styles.proTag, { backgroundColor: theme.backgroundSelected }]}>
+                    <ThemedText themeColor="primaryDeep" style={styles.proTagText}>
+                      PRO
+                    </ThemedText>
+                  </View>
+                )}
                 <Pressable
                   onPress={() => {
                     tap();
@@ -508,6 +513,20 @@ const styles = StyleSheet.create({
     fontSize: 32,
     lineHeight: 38,
     fontWeight: '500',
+  },
+  // Nudged down to line up with the middle of the settings button beside it.
+  proTag: {
+    borderRadius: 999,
+    paddingVertical: Spacing.one,
+    paddingHorizontal: 10,
+    marginTop: 7,
+    marginRight: -Spacing.two,
+  },
+  proTagText: {
+    fontSize: 11,
+    lineHeight: 16,
+    fontWeight: '700',
+    letterSpacing: 1.1,
   },
   settingsButton: {
     width: 44,

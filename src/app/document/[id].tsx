@@ -170,8 +170,7 @@ export default function DocumentDetailScreen() {
   // Setting a date is Pro; seeing one never is.
   async function startEditingRenewal() {
     if (!(await isPro(db))) {
-      // Stands in for the real paywall until RevenueCat exists.
-      Alert.alert("A Pro feature", "Unlock Pro to get reminders before this document needs renewing.", [{ text: "OK" }]);
+      router.push("/paywall");
       return;
     }
     setEditingRenewal(true);

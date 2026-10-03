@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TabTransition } from "@/components/tab-transition";
@@ -66,11 +66,7 @@ export default function DocumentsScreen() {
     tap();
     const count = documents?.length ?? 0;
     if (count >= FREE_DOCUMENT_LIMIT && !(await isPro(db))) {
-      Alert.alert(
-        "A Pro feature",
-        `Unlock Pro to save more than ${FREE_DOCUMENT_LIMIT} documents.`,
-        [{ text: "OK" }]
-      );
+      router.push("/paywall");
       return;
     }
     router.push("/add-document");

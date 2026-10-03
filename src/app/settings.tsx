@@ -1,6 +1,7 @@
 // Settings, opened from the gear on Home. Notifications and About for now; household editing comes later.
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import * as Notifications from "expo-notifications";
 import { router, useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
@@ -45,7 +46,7 @@ export default function SettingsScreen() {
   // shows what was just saved.
   const [household, setHousehold] = useState<Household | null>(null);
 
-  // Development only — the real unlock comes from a purchase.
+  // Read from isPro, so it's true for a real purchase and for the development switch.
   const [proOn, setProOn] = useState(false);
 
   const { working: printing, print } = usePrintPlan();
@@ -193,6 +194,57 @@ export default function SettingsScreen() {
     );
   }
 
+  // The palm on the brand green, the same pairing as the app icon.
+  const proIcon = (
+    <View style={[styles.iconDisc, { backgroundColor: theme.primaryButton }]}>
+      <Image source={require("@/assets/images/splash-icon.png")} style={styles.proMark} contentFit="contain" />
+    </View>
+  );
+
+  // Free: a row that opens the paywall. Pro: the same row, not tappable, saying it's unlocked.
+  let proRow = (
+    <Pressable
+      onPress={() => {
+        tap();
+        router.push("/paywall");
+      }}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.card,
+        { backgroundColor: theme.backgroundElement },
+        pressed && styles.pressed,
+      ]}>
+      <View style={styles.row}>
+        {proIcon}
+        <View style={styles.rowText}>
+          <ThemedText style={styles.rowTitle}>Outerwinds Pro</ThemedText>
+          <ThemedText themeColor="textSecondary" style={styles.rowDetail}>
+            See what&apos;s included
+          </ThemedText>
+        </View>
+        <MaterialCommunityIcons name="chevron-right" size={22} color={theme.textSecondary} />
+      </View>
+    </Pressable>
+  );
+  if (proOn) {
+    proRow = (
+      <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
+        <View style={styles.row}>
+          {proIcon}
+          <View style={styles.rowText}>
+            <ThemedText style={styles.rowTitle}>Outerwinds Pro</ThemedText>
+            <ThemedText themeColor="textSecondary" style={styles.rowDetail}>
+              One-time purchase
+            </ThemedText>
+          </View>
+          <ThemedText themeColor="textSecondary" style={styles.rowValue}>
+            Unlocked
+          </ThemedText>
+        </View>
+      </View>
+    );
+  }
+
   // "2 adults, 1 kid" — zero counts are dropped rather than written as "0 kids".
   let householdCounts = "";
   let householdPlace = "";
@@ -326,6 +378,14 @@ export default function SettingsScreen() {
                 />
               </View>
             </Pressable>
+          </View>
+
+          <View style={styles.section}>
+            <ThemedText themeColor="textSecondary" style={styles.sectionLabel}>
+              Outerwinds Pro
+            </ThemedText>
+
+            {proRow}
           </View>
 
           <View style={styles.section}>
@@ -527,6 +587,10 @@ const styles = StyleSheet.create({
   },
   rowValue: {
     fontSize: 15,
+  },
+  proMark: {
+    width: 26,
+    height: 26,
   },
   divider: {
     height: 1,

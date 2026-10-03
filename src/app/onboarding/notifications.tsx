@@ -168,18 +168,21 @@ export default function NotificationsScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
-          {/* Ungated — leaving both unpicked is a valid answer. */}
+          {/* Waits for a pick. Storm alerts are real now, so nobody should skip them by accident. */}
           <Pressable
             onPress={() => {
               tap();
               router.push('/onboarding/summary');
             }}
+            disabled={choice === null}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: theme.primaryButton },
+              { backgroundColor: choice === null ? theme.border : theme.primaryButton },
               pressed && styles.buttonPressed,
             ]}>
-            <ThemedText style={styles.buttonText}>Continue</ThemedText>
+            <ThemedText style={[styles.buttonText, choice === null ? { color: theme.textSecondary } : null]}>
+              Continue
+            </ThemedText>
           </Pressable>
         </View>
       </SafeAreaView>

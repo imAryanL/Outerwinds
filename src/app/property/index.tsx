@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -52,7 +52,7 @@ export default function PropertyRecordScreen() {
   async function handleAddAreas() {
     tap();
     if (!(await isPro(db))) {
-      Alert.alert('A Pro feature', 'Unlock Pro to add areas to your record.', [{ text: 'OK' }]);
+      router.push('/paywall');
       return;
     }
     router.push('/property/pick-areas');
