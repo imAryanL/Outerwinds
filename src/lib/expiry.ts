@@ -4,10 +4,16 @@
 // JS can't subtract two dates into days, so the gap goes through milliseconds.
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-// Negative once the date has passed. Rounded, since the two dates rarely share a time of day.
+// Midnight at the start of the same calendar day, in the phone's time zone.
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+// Negative once the date has passed. Counts calendar days, so a replace date of today reads 0
+// whatever the time of day. Rounded only because a daylight-saving day isn't exactly 24 hours.
 export function daysUntil(expiresAt: string, today: Date): number {
-  const expiry = new Date(expiresAt);
-  return Math.round((expiry.getTime() - today.getTime()) / MS_PER_DAY);
+  const gap = startOfDay(new Date(expiresAt)).getTime() - startOfDay(today).getTime();
+  return Math.round(gap / MS_PER_DAY);
 }
 
 // Also when the 30-day reminder fires, so the amber on screen matches the notification.

@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -33,6 +33,7 @@ import { daysUntil, expiryLabel, isExpiringSoon } from '@/lib/expiry';
 import { type AlertData } from '@/lib/nws';
 import { tap } from '@/lib/haptics';
 import { isPro } from '@/lib/pro';
+import { askForReviewIfReady } from '@/lib/review';
 import { iconFor, type IconName } from '@/lib/supply-icons';
 
 // One needs-attention card. id is the supply it's about — where tapping the card goes.
@@ -273,6 +274,18 @@ export default function HomeScreen() {
     stormLevel = null;
   }
 
+  // Never during a watch or warning: someone getting ready for a storm shouldn't be asked for a rating.
+  useEffect(() => {
+    if (progress !== null && household !== null) {
+      askForReviewIfReady(
+        db,
+        progress.done,
+        stormLevel !== 'watch' && stormLevel !== 'warning',
+        household.created_at
+      );
+    }
+  }, [db, progress, household, stormLevel]);
+
   // NWS's own event name — never our own words for what the storm is.
   let stormLabel = 'No active alerts';
   if (stormAlert !== null) {
@@ -343,42 +356,48 @@ export default function HomeScreen() {
     );
   }
 
+  const settingsButton = (
+    <Pressable
+      onPress={() => {
+        tap();
+        router.push('/settings');
+      }}
+      accessibilityRole="button"
+      accessibilityLabel="Settings"
+      style={({ pressed }) => [
+        styles.settingsButton,
+        { backgroundColor: theme.primaryButton },
+        pressed && styles.pressed,
+      ]}
+    >
+      <MaterialCommunityIcons name="cog" size={27} color="#FFFFFF" />
+    </Pressable>
+  );
+
   return (
     <ThemedView style={{ flex: 1 }}>
       <TabTransition>
         <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
             <View style={styles.header}>
-              {/* Settings lives on this row rather than taking a 5th tab. */}
-              <View style={styles.titleRow}>
-                <ThemedText style={styles.greeting}>{buildGreeting(household?.name ?? null)}</ThemedText>
-                {pro && (
-                  <View style={[styles.proTag, { backgroundColor: theme.backgroundSelected }]}>
-                    <ThemedText themeColor="primaryDeep" style={styles.proTagText}>
-                      PRO
-                    </ThemedText>
+              {/* Settings lives up here rather than taking a 5th tab. Pro gets a slim top row with
+                  the tag, so the greeting keeps the full width. Free keeps the gear beside it. */}
+              {pro ? (
+                <>
+                  <View style={styles.proRow}>
+                    <View style={[styles.proTag, { backgroundColor: theme.primaryButton }]}>
+                      <ThemedText style={styles.proTagText}>PRO</ThemedText>
+                    </View>
+                    {settingsButton}
                   </View>
-                )}
-                <Pressable
-                  onPress={() => {
-                    tap();
-                    router.push('/settings');
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Settings"
-                  style={({ pressed }) => [
-                    styles.settingsButton,
-                    { backgroundColor: theme.backgroundSelected },
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name="cog"
-                    size={27}
-                    color={theme.primaryDeep}
-                  />
-                </Pressable>
-              </View>
+                  <ThemedText style={styles.greetingFull}>{buildGreeting(household?.name ?? null)}</ThemedText>
+                </>
+              ) : (
+                <View style={styles.titleRow}>
+                  <ThemedText style={styles.greeting}>{buildGreeting(household?.name ?? null)}</ThemedText>
+                  {settingsButton}
+                </View>
+              )}
 
               {/* Fact first, reassurance last. */}
               <ThemedText themeColor="textSecondary" style={styles.summary}>
@@ -514,15 +533,24 @@ const styles = StyleSheet.create({
     lineHeight: 38,
     fontWeight: '500',
   },
-  // Nudged down to line up with the middle of the settings button beside it.
+  proRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  greetingFull: {
+    fontFamily: Fonts.serif,
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: '500',
+  },
   proTag: {
     borderRadius: 999,
     paddingVertical: Spacing.one,
     paddingHorizontal: 10,
-    marginTop: 7,
-    marginRight: -Spacing.two,
   },
   proTagText: {
+    color: '#FFFFFF',
     fontSize: 11,
     lineHeight: 16,
     fontWeight: '700',

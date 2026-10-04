@@ -10,7 +10,6 @@ import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, T
 import type { PurchasesPackage } from 'react-native-purchases';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BeforeAfter } from '@/components/paywall/before-after';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -41,7 +40,7 @@ const BENEFITS = [
     id: 'documents',
     icon: 'file-multiple-outline',
     title: 'Unlimited documents',
-    detail: `Free holds ${FREE_DOCUMENT_LIMIT}. Pro holds them all.`,
+    detail: `Save as many as you need. Free allows ${FREE_DOCUMENT_LIMIT}.`,
   },
   {
     id: 'plan',
@@ -208,9 +207,6 @@ export default function PaywallScreen() {
             </ThemedText>
           </View>
         </View>
-
-        {/* Only the property record shows an example. */}
-        {benefit.id === 'property' && <BeforeAfter />}
       </View>
     );
   }
@@ -429,7 +425,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
   },
   row: {
-    paddingVertical: 12,
+    paddingVertical: 18,
     gap: 12,
   },
   rowTop: {

@@ -300,31 +300,32 @@ export default function ChecklistScreen() {
         <SafeAreaView style={{ flex: 1 }}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
             <View style={styles.header}>
-              <ThemedText style={styles.headerTitle}>Prep checklist</ThemedText>
+              {/* Add lives up here so it's in reach however far the list scrolls. */}
+              <View style={styles.titleRow}>
+                <ThemedText style={styles.headerTitle}>Prep checklist</ThemedText>
+                <Pressable
+                  onPress={() => {
+                    tap();
+                    router.push("/add-item");
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Add item"
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    styles.addButton,
+                    { backgroundColor: theme.primaryButton },
+                    pressed && styles.rowPressed,
+                  ]}
+                >
+                  <MaterialCommunityIcons name="plus-thick" size={20} color="#FFFFFF" />
+                </Pressable>
+              </View>
               <ThemedText type="small" themeColor="textSecondary">
                 Tailored to your household
               </ThemedText>
             </View>
 
             {sections}
-
-            <Pressable
-              onPress={() => {
-                tap();
-                router.push("/add-item");
-              }}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.addRow,
-                { borderColor: theme.primary, backgroundColor: theme.backgroundSelected },
-                pressed && styles.rowPressed,
-              ]}
-            >
-              <MaterialCommunityIcons name="plus" size={22} color={theme.primaryDeep} />
-              <ThemedText themeColor="primaryDeep" style={styles.addRowText}>
-                Add item
-              </ThemedText>
-            </Pressable>
 
             {/* Sits under the list because that's the moment you want it — looking at
                 what's left and about to go shopping. Same row for everyone: Pro builds
@@ -340,7 +341,7 @@ export default function ChecklistScreen() {
               style={({ pressed }) => [
                 styles.addRow,
                 styles.printRow,
-                styles.printRowFilled,
+                styles.filledRow,
                 { backgroundColor: theme.primaryButton },
                 pressed && styles.rowPressed,
               ]}
@@ -366,6 +367,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  // Filled, since this one does something. Smaller than the gear on Home, which only navigates.
+  addButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   categorySection: {
     marginBottom: 20,
   },
@@ -375,6 +388,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   headerTitle: {
+    flex: 1,
     fontFamily: Fonts.serif,
     fontSize: 32,
     lineHeight: 38,
@@ -442,14 +456,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 10,
     borderWidth: 2,
-    borderRadius: 16,
-    paddingVertical: 14,
-  },
-  addRowText: {
-    fontSize: 16,
-    fontWeight: "600",
+    borderRadius: 14,
+    paddingVertical: 16,
   },
   // A gap before this one row, so it doesn't read as glued to Add item.
   printRow: {
@@ -460,7 +470,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   // addRow's border is meant for an outlined button — a filled one needs none.
-  printRowFilled: {
+  filledRow: {
     borderWidth: 0,
   },
 });
