@@ -19,6 +19,7 @@ import { deleteAllData } from "@/db/reset";
 import { usePrintPlan } from "@/hooks/use-print-plan";
 import { useTheme } from "@/hooks/use-theme";
 import { success, tap, warn } from "@/lib/haptics";
+import { PRIVACY_URL } from "@/lib/links";
 import {
   registerPushToken,
   requestNotificationPermission,
@@ -441,6 +442,29 @@ export default function SettingsScreen() {
                   </ThemedText>
                 </View>
               </View>
+
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+              <Pressable
+                onPress={() => {
+                  tap();
+                  Linking.openURL(PRIVACY_URL);
+                }}
+                accessibilityRole="link"
+                style={({ pressed }) => [pressed && styles.pressed]}>
+                <View style={styles.row}>
+                  <View style={[styles.iconDisc, { backgroundColor: theme.backgroundSelected }]}>
+                    <MaterialCommunityIcons name="lock-outline" size={28} color={theme.primaryDeep} />
+                  </View>
+                  <View style={styles.rowText}>
+                    <ThemedText style={styles.rowTitle}>Privacy policy</ThemedText>
+                    <ThemedText themeColor="textSecondary" style={styles.rowDetail}>
+                      How we handle your information.
+                    </ThemedText>
+                  </View>
+                  <MaterialCommunityIcons name="chevron-right" size={22} color={theme.textSecondary} />
+                </View>
+              </Pressable>
             </View>
           </View>
 

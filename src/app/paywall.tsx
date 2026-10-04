@@ -15,6 +15,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { success, tap } from '@/lib/haptics';
+import { PRIVACY_URL } from '@/lib/links';
 import { FREE_DOCUMENT_LIMIT, isPro } from '@/lib/pro';
 import { buyPro, getProPackage, restorePro } from '@/lib/purchases';
 
@@ -267,6 +268,17 @@ export default function PaywallScreen() {
               hitSlop={8}
               style={({ pressed }) => [pressed && styles.pressed]}>
               <Text style={styles.link}>Terms</Text>
+            </Pressable>
+            <Text style={styles.linkDot}>·</Text>
+            <Pressable
+              onPress={() => {
+                tap();
+                Linking.openURL(PRIVACY_URL);
+              }}
+              accessibilityRole="link"
+              hitSlop={8}
+              style={({ pressed }) => [pressed && styles.pressed]}>
+              <Text style={styles.link}>Privacy</Text>
             </Pressable>
           </View>
         </View>
