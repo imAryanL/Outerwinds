@@ -325,7 +325,7 @@ export default function EditHouseholdScreen() {
             <TextInput
               value={name}
               onChangeText={setName}
-              placeholder="Leave blank to skip"
+              placeholder="Maria"
               placeholderTextColor={theme.textSecondary}
               style={[
                 styles.input,
@@ -382,7 +382,7 @@ export default function EditHouseholdScreen() {
             <TextInput
               value={zip}
               onChangeText={handleZipChange}
-              placeholder="33322"
+              placeholder="33325"
               placeholderTextColor={theme.textSecondary}
               keyboardType="number-pad"
               maxLength={5}

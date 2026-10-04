@@ -1,4 +1,4 @@
-// Settings, opened from the gear on Home. Notifications and About for now; household editing comes later.
+// Settings, opened from the gear on Home: household, plan, Pro, notifications, about and your data.
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";

@@ -109,7 +109,7 @@ export default function HouseholdScreen() {
             <TextInput
               value={draft.name}
               onChangeText={(text) => updateDraft({ name: text })}
-              placeholder="Aryan"
+              placeholder="Maria"
               placeholderTextColor={theme.textSecondary}
               autoCapitalize="words"
               autoCorrect={false} // stops an unusual name being 'fixed' into a word

@@ -23,8 +23,7 @@ const PEAK_LABEL_PERCENT = 55;
 const MONTHS = ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"];
 
 type SeasonBarProps = {
-  // How far into the season today is, 0–100. Mock for now; the real value comes from
-  // today's date in the functionality pass.
+  // How far into the season today is, 0–100. Comes from seasonPercent in lib/season.ts.
   todayPercent: number;
 };
 

@@ -200,7 +200,7 @@ export default function LocationScreen() {
             <TextInput
               value={draft.zip}
               onChangeText={handleZipChange}
-              placeholder="33322"
+              placeholder="33325"
               placeholderTextColor={theme.textSecondary}
               keyboardType="number-pad"
               maxLength={5}
