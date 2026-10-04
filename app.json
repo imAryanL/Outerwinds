@@ -9,6 +9,9 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.aryan.outerwinds",
+      "entitlements": {
+        "com.apple.developer.usernotifications.time-sensitive": true
+      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

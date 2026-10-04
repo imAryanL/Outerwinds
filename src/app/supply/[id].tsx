@@ -99,6 +99,9 @@ export default function SupplyDetailScreen() {
     tick();
     const date = new Date();
     date.setMonth(date.getMonth() + months);
+
+    // 9 AM, so the reminders arrive in the morning, not at whatever hour the pill was tapped.
+    date.setHours(9, 0, 0, 0);
     const expiresAt = date.toISOString();
 
     await setExpiryDate(db, item.id, expiresAt);
