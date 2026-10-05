@@ -38,11 +38,20 @@ const TEMPLATE: TemplateItem[] = [
   },
   {
     templateId: 'food',
-    name: 'Non-perishable food',
+    name: 'Canned or dry food',
     category: 'Water & food',
     rationale: 'No cooking, no refrigeration',
     quantityFrom: 'meals',
     unit: 'meals',
+  },
+  {
+    templateId: 'diet_food',
+    name: 'Food that fits your diet',
+    category: 'Water & food',
+    rationale: 'Hard to find after a storm',
+    quantityFrom: null,
+    unit: null,
+    concern: 'allergies',
   },
   {
     templateId: 'can_opener',
@@ -70,7 +79,7 @@ const TEMPLATE: TemplateItem[] = [
   },
   {
     templateId: 'radio',
-    name: 'Battery or hand-crank radio',
+    name: 'Emergency radio',
     category: 'Power & light',
     rationale: 'Weather alerts with no signal',
     quantityFrom: null,
@@ -94,6 +103,15 @@ const TEMPLATE: TemplateItem[] = [
     concern: 'prescriptions',
   },
   {
+    templateId: 'device_power',
+    name: 'Backup power for your medical device',
+    category: 'Medical & documents',
+    rationale: 'Power banks or spare batteries',
+    quantityFrom: null,
+    unit: null,
+    concern: 'powered_device',
+  },
+  {
     templateId: 'cash',
     name: 'Cash',
     category: 'Medical & documents',
@@ -111,7 +129,7 @@ const TEMPLATE: TemplateItem[] = [
   },
   {
     templateId: 'shutters',
-    name: 'Storm shutters or plywood',
+    name: 'Window shutters or boards',
     category: 'Home & property',
     rationale: 'Protects windows from wind-driven debris',
     quantityFrom: null,
@@ -128,7 +146,7 @@ const TEMPLATE: TemplateItem[] = [
   },
   {
     templateId: 'tarp',
-    name: 'Heavy-duty tarp',
+    name: 'Roof cover',
     category: 'Home & property',
     rationale: 'Covers roof damage until repairs',
     quantityFrom: null,

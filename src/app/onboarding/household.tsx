@@ -19,12 +19,12 @@ import { computeTargets, PLANNING_DAYS } from '@/lib/targets';
 // Welcome isn't a step, so this is 1 of 5.
 const CURRENT_STEP = 1;
 
-// Three only. A generator chip is cut from v1. Exported so the Settings edit screen asks
-// the same three rather than keeping its own copy of the labels.
+// Three only, and each one adds a real checklist item. Exported so the Settings edit screen
+// asks the same three rather than keeping its own copy of the labels.
 export const CONCERNS = [
   { id: 'prescriptions', label: 'Daily prescriptions', icon: 'pill' },
-  { id: 'infant', label: 'Infant or formula', icon: 'baby-bottle-outline' },
-  { id: 'mobility', label: 'Mobility or medical device', icon: 'wheelchair-accessibility' },
+  { id: 'powered_device', label: 'Medical device that needs power', icon: 'power-plug-outline' },
+  { id: 'allergies', label: 'Food allergies or special diet', icon: 'food-off-outline' },
 ] as const;
 
 export default function HouseholdScreen() {
@@ -96,8 +96,7 @@ export default function HouseholdScreen() {
             <ThemedText style={styles.title}>Who&apos;s going to be with you?</ThemedText>
 
             <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-              Your answers set the quantities on your checklist, so you&apos;re never working
-              them out in a store aisle.
+              Your answers set the quantities on your checklist.
             </ThemedText>
           </View>
 

@@ -22,7 +22,7 @@ export const SUPPLY_SECTIONS = [
     title: 'Water & food',
     items: [
       { id: 'water', label: 'Bottled water' },
-      { id: 'food', label: 'Non-perishable food' },
+      { id: 'food', label: 'Canned or dry food' },
       { id: 'can_opener', label: 'Manual can opener' },
     ],
   },
@@ -31,7 +31,7 @@ export const SUPPLY_SECTIONS = [
     items: [
       { id: 'flashlights', label: 'Flashlights' },
       { id: 'batteries', label: 'Batteries' },
-      { id: 'radio', label: 'Battery or hand-crank radio' },
+      { id: 'radio', label: 'Emergency radio' },
     ],
   },
   {
@@ -46,9 +46,9 @@ export const SUPPLY_SECTIONS = [
   {
     title: 'Home & property',
     items: [
-      { id: 'shutters', label: 'Storm shutters or plywood' },
+      { id: 'shutters', label: 'Window shutters or boards' },
       { id: 'sandbags', label: 'Sandbags' },
-      { id: 'tarp', label: 'Heavy-duty tarp' },
+      { id: 'tarp', label: 'Roof cover' },
       { id: 'tie_downs', label: 'Rope or tie-downs' },
     ],
   },
@@ -129,7 +129,7 @@ export default function SuppliesScreen() {
             <ThemedText style={styles.title}>What do you already have?</ThemedText>
 
             <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-             Tap anything you already keep at home — most households are further along than they think.
+              Tap anything you already keep at home.
             </ThemedText>
           </View>
 

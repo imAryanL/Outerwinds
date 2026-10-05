@@ -82,10 +82,11 @@ v1 ships to the **App Store only**.
 **Done:**
 - The paywall and real purchases (the App Store Connect record and the $4.99 product exist, and a sandbox buy and Restore were verified on Oct 4).
 - The privacy policy: `docs/privacy.html`, served by GitHub Pages at `https://imaryanl.github.io/Outerwinds/privacy.html`, linked from the paywall and from Settings (`PRIVACY_URL` in `src/lib/links.ts`).
+- The support page: `docs/support.html`, live at `https://imaryanl.github.io/Outerwinds/support.html`. It goes in App Store Connect's **Support URL** field (still to paste in).
 - The review prompt (`src/lib/review.ts`): asks once, on Home, after 2 ticked checklist items and 1 day since setup, never during a watch or warning.
 - Time Sensitive notifications: enabled on the App ID and declared in `app.json`, so a storm warning can get through a Focus mode. Verified on a real iPhone.
 
-**Left:** the notifications-off test (turning notifications off should remove the server row), the airplane-mode pass, the store listing (screenshots, description, keywords, a support page in `docs/`, App Privacy answers, and the paywall screenshot for the IAP review), then the production build and submit. After the build, check on TestFlight that Settings has no Developer section.
+**Left:** the notifications-off test (turning notifications off should remove the server row), the airplane-mode pass, the store listing (screenshots, description, keywords, pasting in the Support URL and privacy URL, App Privacy answers, and the paywall screenshot for the IAP review), then the production build and submit. After the build, check on TestFlight that Settings has no Developer section.
 
 **Held for 1.0.1:** a "Rate Outerwinds" row in Settings. Before the app is live its App Store link says the app isn't available, and a reviewer could tap it.
 
