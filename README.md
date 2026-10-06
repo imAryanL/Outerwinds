@@ -1,56 +1,67 @@
-# Welcome to your Expo app 👋
+<p align="center">
+  <img src="assets/images/icon.png" width="120" alt="Outerwinds app icon" />
+</p>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+<h1 align="center">Outerwinds</h1>
 
-## Get started
+<p align="center"><em>Storm and hurricane prep for your household. Works offline.</em></p>
 
-1. Install dependencies
+<p align="center">
+  <img src="https://img.shields.io/badge/React_Native-0.86-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React Native" />
+  <img src="https://img.shields.io/badge/Expo-SDK_57-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/App_Store-Coming_Soon-0D96F6?style=for-the-badge&logo=app-store&logoColor=white" alt="App Store: coming soon" />
+</p>
 
-   ```bash
-   npm install
-   ```
+Outerwinds helps households across the US get ready for hurricanes and major storms. It builds a checklist for your home, tracks your supplies and important documents, and sends a push notification when the National Weather Service issues a hurricane, tropical storm, storm surge or flash flood watch or warning for your area. Everything you save works with no signal.
 
-2. Start the app
+## Screenshots
 
-   ```bash
-   npx expo start
-   ```
+<p align="center">
+  <img src="docs/screenshots/1.png" width="160" alt="Home" />
+  <img src="docs/screenshots/2.png" width="160" alt="Checklist" />
+  <img src="docs/screenshots/3.png" width="160" alt="Alerts" />
+  <img src="docs/screenshots/4.png" width="160" alt="Documents" />
+  <img src="docs/screenshots/6.png" width="160" alt="Pro" />
+</p>
 
-In the output, you'll find options to open the app in a
+## Features
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [x] Personalized checklist built from your household profile
+- [x] Readiness score on Home
+- [x] Supply inventory with quantities, photos and expiration dates
+- [x] Expiration reminders (30 days and 7 days before)
+- [x] Live NWS storm watches and warnings, cached for offline
+- [x] Push notifications for new watches and warnings, including Time Sensitive delivery
+- [x] Document vault with camera and photo import
+- [x] Pro (one-time purchase): storm property record, unlimited documents, printable plan, PDF export
+- [x] Light and dark mode
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Why I Built It
 
-## Get a fresh project
+I'm an iOS developer (Swift and SwiftUI) and wanted to learn React Native, a framework that lets one codebase run on both iOS and Android. Outerwinds is my first React Native app. It launches on the App Store first, and I tested it on Android along the way.
 
-When you're ready, run:
+## Tech Stack
 
-```bash
-npm run reset-project
-```
+| Layer | Technology |
+|-------|------------|
+| App | React Native, Expo SDK 57, TypeScript |
+| Navigation | Expo Router |
+| Local data | expo-sqlite |
+| Backend | Supabase (storm alerts) |
+| Push | Expo Push Notifications (APNs) |
+| Weather | National Weather Service API |
+| Purchases | RevenueCat |
+| Builds | EAS Build |
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Privacy Policy
 
-### Other setup steps
+[Privacy Policy](https://imaryanl.github.io/Outerwinds/privacy.html) · [Support](https://imaryanl.github.io/Outerwinds/support.html)
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Contact
 
-## Learn more
+Built by **Aryan Lakhani**
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/aryan-lakhani/)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/imAryanL)
